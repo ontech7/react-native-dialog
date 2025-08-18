@@ -1,0 +1,9 @@
+export { Dialog } from "./Dialog";
+export { DialogAction } from "./DialogAction";
+export { DialogBody } from "./DialogBody";
+export { DialogDescription, } from "./DialogDescription";
+export { DialogFooter } from "./DialogFooter";
+export { DialogHeader } from "./DialogHeader";
+export { DialogInput } from "./DialogInput";
+export { DialogProvider, } from "./DialogProvider";
+export { DialogTitle } from "./DialogTitle";
