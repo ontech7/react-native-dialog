@@ -8,6 +8,7 @@ Dialog component for Expo SDK (React Native). Compatible with Android & iOS.
 
 Features:
 
+- Compatible with Expo SDK >= 51
 - `shadcn/ui` approach, with fully customizable components
 - Possibility to change global styles from the `DialogProvider`
 - Portalized pupup/dialog
@@ -15,7 +16,7 @@ Features:
 - Modifiable tint dark/light (default: `dark`)
 - Modifiable slide-in animation (default: `none`)
 
-| No Animation | Slide-in |
+| No Slide | Slide-in |
 |---|---|
 |![default](https://github.com/user-attachments/assets/01d5fd43-aad5-42ea-8da1-793e9446b898)|![slide-from](https://github.com/user-attachments/assets/2e0d3f91-4c7b-4e8c-9f56-621e8f1e79e5)|
 | Global Custom styles | Input |
