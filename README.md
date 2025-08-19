@@ -17,11 +17,11 @@ Features:
 - Modifiable slide-in animation (default: `none`)
 - Possibility to add blur layer with `BlurComponent` prop
 
-| No Slide                                                                                    | Slide-in                                                                                       |
-| ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| ![default](https://github.com/user-attachments/assets/01d5fd43-aad5-42ea-8da1-793e9446b898) | ![slide-from](https://github.com/user-attachments/assets/2e0d3f91-4c7b-4e8c-9f56-621e8f1e79e5) |
-| Global Custom styles                                                                        | Input                                                                                          |
-| ![custom](https://github.com/user-attachments/assets/27069773-57de-4819-ae84-0088253b8fee)  | ![input](https://github.com/user-attachments/assets/c8bbd400-ff0a-4d42-8589-945c53d9fdf8)      |
+| No Slide | Slide-in|
+| --- | --- |
+| ![default](https://github.com/user-attachments/assets/c9dec9c0-7bb1-4cae-9e3a-94fcc9f17116) | ![slide](https://github.com/user-attachments/assets/0f1f8ef3-9b9b-4bb7-a94f-80919d82354f) |
+| Input | Global Custom Styles | 
+| ![input](https://github.com/user-attachments/assets/f16b4a23-bc10-4bfd-81e7-09cbdee20226) | ![custom](https://github.com/user-attachments/assets/d282916b-3db6-4ea6-a2dc-6d1cf7078d2c) |
 
 ---
 
@@ -103,6 +103,8 @@ export default function Component(props) {
   );
 }
 ```
+
+![blur](https://github.com/user-attachments/assets/e46fd559-66d2-4f90-9cb3-234058857c9f)
 
 ## Props
 
