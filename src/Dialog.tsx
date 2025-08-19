@@ -16,6 +16,7 @@ export type DialogProps = ViewProps & {
   tint?: "light" | "dark";
   animation?: boolean;
   duration?: number;
+  delay?: number;
   slideFrom?: "top" | "bottom" | "left" | "right" | "none";
   BlurComponent?: React.ComponentType<any>;
 };
@@ -26,6 +27,7 @@ export function Dialog({
   tint = "dark",
   animation = true,
   duration = 200,
+  delay = 0,
   slideFrom = "none",
   BlurComponent,
   style,
@@ -49,6 +51,7 @@ export function Dialog({
       Animated.timing(progress, {
         toValue: 1,
         duration,
+        delay,
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }).start();

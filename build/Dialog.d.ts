@@ -6,7 +6,8 @@ export type DialogProps = ViewProps & {
     tint?: "light" | "dark";
     animation?: boolean;
     duration?: number;
+    delay?: number;
     slideFrom?: "top" | "bottom" | "left" | "right" | "none";
     BlurComponent?: React.ComponentType<any>;
 };
-export declare function Dialog({ open, onPressOut, tint, animation, duration, slideFrom, BlurComponent, style, children, ...props }: DialogProps): React.JSX.Element | null;
+export declare function Dialog({ open, onPressOut, tint, animation, duration, delay, slideFrom, BlurComponent, style, children, ...props }: DialogProps): React.JSX.Element | null;

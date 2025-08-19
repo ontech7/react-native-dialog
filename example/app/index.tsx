@@ -6,62 +6,59 @@ import { Divider } from "@/components/Divider";
 import { InputDialog } from "@/components/InputDialog";
 import { DialogProvider } from "@ontech7/react-native-dialog";
 import { BlurView } from "expo-blur";
-import { Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 
 export default function IndexPage() {
   return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Text
-        style={{
-          position: "absolute",
-          top: 120,
-          fontSize: 32,
-          fontWeight: "600",
-          textAlign: "center",
+    <DialogProvider>
+      <ScrollView
+        contentContainerStyle={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        react-native-dialog
-      </Text>
+        <Text
+          style={{
+            fontSize: 32,
+            fontWeight: "600",
+            textAlign: "center",
+            marginBottom: 40,
+          }}
+        >
+          react-native-dialog
+        </Text>
 
-      <DialogProvider>
         <View style={{ gap: 20 }}>
           <DefaultDialog
             buttonLabel="OPEN DEFAULT DIALOG"
             buttonColor="blue"
             slideFrom="none"
           />
+
           <DefaultDialog
             buttonLabel="OPEN WITH BLUR DIALOG"
             buttonColor="red"
             slideFrom="none"
             BlurComponent={BlurView}
           />
-          <DefaultDialog
-            buttonLabel="OPEN NO ANIM DIALOG"
-            buttonColor="brown"
-            slideFrom="none"
-            animation={false}
-          />
-          <InputDialog
-            buttonLabel="OPEN INPUT DIALOG"
-            buttonColor="midnightblue"
-            slideFrom="none"
-          />
         </View>
 
         <Divider />
+
+        <DefaultDialog
+          buttonLabel="OPEN NO ANIM DIALOG"
+          buttonColor="brown"
+          slideFrom="none"
+          animation={false}
+        />
 
         <View
           style={{
             position: "relative",
             height: 200,
             width: 350,
+            marginTop: 40,
           }}
         >
           <DefaultDialog
@@ -115,11 +112,28 @@ export default function IndexPage() {
 
         <Divider />
 
-        <DefaultDialog
-          buttonLabel="OPEN BOTTOM WITH DURATION DIALOG"
-          buttonColor="brown"
-          slideFrom="bottom"
-          duration={1000}
+        <View style={{ gap: 20 }}>
+          <DefaultDialog
+            buttonLabel="OPEN BOTTOM WITH DURATION DIALOG"
+            buttonColor="brown"
+            slideFrom="bottom"
+            duration={1000}
+          />
+
+          <DefaultDialog
+            buttonLabel="OPEN BOTTOM WITH DELAY DIALOG"
+            buttonColor="midnightblue"
+            slideFrom="bottom"
+            delay={500}
+          />
+        </View>
+
+        <Divider />
+
+        <InputDialog
+          buttonLabel="OPEN INPUT DIALOG"
+          buttonColor="midnightblue"
+          slideFrom="none"
         />
 
         <Divider />
@@ -154,7 +168,7 @@ export default function IndexPage() {
             buttonColor="rebeccapurple"
           />
         </DialogProvider>
-      </DialogProvider>
-    </View>
+      </ScrollView>
+    </DialogProvider>
   );
 }

@@ -1,3 +1,8 @@
+## v1.1.2
+
+- Add `delay` prop on `Dialog` component
+- Fix `DialogInput` cursor, placeholder and text color
+
 ## v1.1.1
 
 - Fix overlay when `animation` is set to false

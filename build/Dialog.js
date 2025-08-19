@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, TouchableWithoutFeedback, View, } from "react-native";
 import { useDialogStyles } from "./DialogProvider";
 import { Portal } from "./components/Portal";
-export function Dialog({ open, onPressOut, tint = "dark", animation = true, duration = 200, slideFrom = "none", BlurComponent, style, children, ...props }) {
+export function Dialog({ open, onPressOut, tint = "dark", animation = true, duration = 200, delay = 0, slideFrom = "none", BlurComponent, style, children, ...props }) {
     const { container } = useDialogStyles();
     const [mounted, setMounted] = useState(open);
     const progress = useRef(new Animated.Value(open ? 1 : 0)).current;
@@ -17,6 +17,7 @@ export function Dialog({ open, onPressOut, tint = "dark", animation = true, dura
             Animated.timing(progress, {
                 toValue: 1,
                 duration,
+                delay,
                 easing: Easing.out(Easing.ease),
                 useNativeDriver: true,
             }).start();

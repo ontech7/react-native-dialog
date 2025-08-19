@@ -9,7 +9,7 @@ import {
   DialogProps,
   DialogTitle,
 } from "@ontech7/react-native-dialog";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   Alert,
   ColorValue,
@@ -33,15 +33,16 @@ export function InputDialog({
 }: InputDialogProps) {
   const [open, setOpen] = useState(false);
 
-  const [text, setText] = useState("");
+  /* avoid input lag */
+  const textInputRef = useRef("");
 
   const handleOpen = useCallback(() => setOpen(true), []);
   const handleClose = useCallback(() => setOpen(false), []);
 
   const handleConfirm = useCallback(() => {
     setOpen(false);
-    Alert.alert("Text: ", text);
-  }, [text]);
+    Alert.alert("Text: ", textInputRef.current);
+  }, []);
 
   return (
     <>
@@ -80,7 +81,10 @@ export function InputDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogBody>
-          <DialogInput onChangeText={setText} value={text} />
+          <DialogInput
+            placeholder="Write something..."
+            onChangeText={(text) => (textInputRef.current = text)}
+          />
         </DialogBody>
         <DialogFooter>
           <DialogAction onPress={handleClose}>Close</DialogAction>

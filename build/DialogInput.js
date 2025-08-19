@@ -1,12 +1,12 @@
 import React from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { useDialogStyles } from "./DialogProvider";
-export function DialogInput({ label, style, ...props }) {
+export function DialogInput({ label, style, containerStyle, labelStyle, ...props }) {
     const { input } = useDialogStyles();
     return (React.createElement(View, { style: styles.container },
-        label && React.createElement(Text, { style: styles.label }, label),
-        React.createElement(View, { style: styles.inputWrapper },
-            React.createElement(TextInput, { ...props, style: [styles.input, input, style] }))));
+        label && React.createElement(Text, { style: [styles.label, labelStyle] }, label),
+        React.createElement(View, { style: [styles.inputWrapper, containerStyle] },
+            React.createElement(TextInput, { cursorColor: "#000", placeholderTextColor: "#777", ...props, style: [styles.input, input, style] }))));
 }
 const styles = StyleSheet.create({
     container: {},
@@ -22,10 +22,12 @@ const styles = StyleSheet.create({
     input: {
         flex: 1,
         paddingHorizontal: 8,
+        color: "#000",
     },
     label: {
-        marginBottom: 8,
+        marginBottom: 4,
         fontSize: 16,
         fontWeight: "600",
+        color: "#000",
     },
 });
