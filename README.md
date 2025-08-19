@@ -28,11 +28,11 @@ Features:
 ## Usage
 
 ```bash
-$ yarn add @ontech7/react-native-dialog react-native-portalize
+$ yarn add @ontech7/react-native-dialog
 # or
-$ npm install @ontech7/react-native-dialog react-native-portalize
+$ npm install @ontech7/react-native-dialog
 # or
-$ pnpm add @ontech7/react-native-dialog react-native-portalize
+$ pnpm add @ontech7/react-native-dialog
 ```
 
 ```jsx
