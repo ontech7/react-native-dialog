@@ -1,9 +1,11 @@
+import React from "react";
+
 import { CustomDialog } from "@/components/CustomDialog";
 import { DefaultDialog } from "@/components/DefaultDialog";
 import { Divider } from "@/components/Divider";
 import { InputDialog } from "@/components/InputDialog";
-import { DialogProvider } from "@ontech7/expo-dialog";
-import React from "react";
+import { DialogProvider } from "@ontech7/react-native-dialog";
+import { BlurView } from "expo-blur";
 import { Text, View } from "react-native";
 
 export default function IndexPage() {
@@ -24,7 +26,7 @@ export default function IndexPage() {
           textAlign: "center",
         }}
       >
-        expo-dialog
+        react-native-dialog
       </Text>
 
       <DialogProvider>
@@ -33,6 +35,12 @@ export default function IndexPage() {
             buttonLabel="OPEN DEFAULT DIALOG"
             buttonColor="blue"
             slideFrom="none"
+          />
+          <DefaultDialog
+            buttonLabel="OPEN WITH BLUR DIALOG"
+            buttonColor="red"
+            slideFrom="none"
+            BlurComponent={BlurView}
           />
           <InputDialog
             buttonLabel="OPEN INPUT DIALOG"
@@ -111,7 +119,7 @@ export default function IndexPage() {
         <Divider />
 
         <DialogProvider
-          styles={{
+          customStyles={{
             container: {
               borderRadius: 0,
               backgroundColor: "#333",

@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogProps,
   DialogTitle,
-} from "@ontech7/expo-dialog";
+} from "@ontech7/react-native-dialog";
 import { useCallback, useState } from "react";
 import {
   ColorValue,

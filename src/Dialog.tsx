@@ -1,123 +1,145 @@
-import React, { useEffect, useState } from "react";
-
-import { Portal } from "@gorhom/portal";
-import { BlurView } from "expo-blur";
-import type { ViewProps } from "react-native";
-import { StyleSheet, View } from "react-native";
-import Animated, {
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Animated,
   Easing,
-  interpolate,
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
+  StyleSheet,
+  TouchableWithoutFeedback,
+  View,
+  type ViewProps,
+} from "react-native";
 import { useDialogStyles } from "./DialogProvider";
+import { Portal } from "./components/Portal";
 
 export type DialogProps = ViewProps & {
   open: boolean;
+  onPressOut?: () => Promise<void> | void;
   tint?: "light" | "dark";
+  animation?: boolean;
   duration?: number;
   slideFrom?: "top" | "bottom" | "left" | "right" | "none";
+  BlurComponent?: React.ComponentType<any>;
 };
 
 export function Dialog({
   open,
+  onPressOut,
   tint = "dark",
+  animation = true,
   duration = 200,
   slideFrom = "none",
+  BlurComponent,
   style,
   children,
   ...props
 }: DialogProps) {
   const { container } = useDialogStyles();
-
   const [mounted, setMounted] = useState(open);
 
-  const progress = useSharedValue(open ? 1 : 0);
+  const progress = useRef(new Animated.Value(open ? 1 : 0)).current;
 
-  const dialogAnimStyle = useAnimatedStyle(() => {
+  useEffect(() => {
+    if (!animation) {
+      setMounted(open);
+      return;
+    }
+
+    if (open) {
+      setMounted(true);
+      Animated.timing(progress, {
+        toValue: 1,
+        duration,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(progress, {
+        toValue: 0,
+        duration,
+        easing: Easing.in(Easing.ease),
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished) {
+          setMounted(false);
+        }
+      });
+    }
+  }, [open]);
+
+  const dialogAnimStyle = (() => {
+    if (!animation) {
+      return { opacity: open ? 1 : 0 };
+    }
+
     if (slideFrom === "none") {
-      return { opacity: progress.value };
+      return { opacity: progress };
     }
 
     const translateValue =
       slideFrom === "bottom" || slideFrom === "right" ? 30 : -30;
 
+    const translate = progress.interpolate({
+      inputRange: [0, 1],
+      outputRange: [translateValue, 0],
+    });
+
     return {
-      opacity: progress.value,
+      opacity: progress,
       transform: [
         slideFrom === "top" || slideFrom === "bottom"
-          ? {
-              translateY: interpolate(
-                progress.value,
-                [0, 1],
-                [translateValue, 0]
-              ),
-            }
-          : {
-              translateX: interpolate(
-                progress.value,
-                [0, 1],
-                [translateValue, 0]
-              ),
-            },
+          ? { translateY: translate }
+          : { translateX: translate },
       ],
     };
-  });
-
-  const blurAnimStyle = useAnimatedStyle(() => ({
-    opacity: progress.value,
-  }));
-
-  useEffect(() => {
-    if (open) {
-      setMounted(true);
-      progress.value = withTiming(1, {
-        duration,
-        easing: Easing.out(Easing.ease),
-      });
-    } else {
-      progress.value = withTiming(
-        0,
-        { duration, easing: Easing.in(Easing.ease) },
-        (finished) => {
-          if (finished) {
-            runOnJS(setMounted)(false);
-          }
-        }
-      );
-    }
-  }, [open]);
+  })();
 
   if (!mounted) {
     return null;
   }
 
+  const transparencyBackground =
+    tint === "dark"
+      ? BlurComponent
+        ? "#0003"
+        : "#0008"
+      : BlurComponent
+      ? "#fff3"
+      : "#fff8";
+
+  const BlurComp = (BlurComponent ?? View) as React.ComponentType<any>;
+
   return (
     <Portal>
-      <BlurView
-        blurReductionFactor={12}
-        intensity={30}
-        experimentalBlurMethod="dimezisBlurView"
+      <BlurComp
+        /* expo-blur */
+        intensity={25}
         tint={tint}
+        experimentalBlurMethod="dimezisBlurView"
+        blurReducedFactor={8}
+        /* sbaiahmed1/react-native-blur */
+        blurAmount={30}
+        blurType={tint}
+        reducedTransparencyFallbackColor={transparencyBackground}
+        /* @react-native-community/blur */
+        downsampleFactor={8}
         style={StyleSheet.absoluteFillObject}
       />
       <Animated.View
         style={[
           StyleSheet.absoluteFillObject,
-          { backgroundColor: tint === "dark" ? "#0003" : "#fff3" },
-          blurAnimStyle,
+          { backgroundColor: transparencyBackground },
+          { opacity: progress },
         ]}
       />
-      <View style={styles.container}>
-        <Animated.View
-          {...props}
-          style={[styles.dialog, dialogAnimStyle, container, style]}
-        >
-          {children}
-        </Animated.View>
-      </View>
+      <TouchableWithoutFeedback onPress={onPressOut}>
+        <View style={styles.container}>
+          <Animated.View
+            {...props}
+            style={[styles.dialog, dialogAnimStyle, container, style]}
+          >
+            {children}
+          </Animated.View>
+        </View>
+      </TouchableWithoutFeedback>
     </Portal>
   );
 }

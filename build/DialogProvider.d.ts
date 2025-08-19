@@ -13,6 +13,6 @@ export type DialogStyleConfig = {
 export declare const useDialogStyles: () => DialogStyleConfig;
 export type DialogProviderProps = {
     children: React.ReactNode;
-    styles?: DialogStyleConfig;
+    customStyles?: DialogStyleConfig;
 };
-export declare function DialogProvider({ children, styles }: DialogProviderProps): React.JSX.Element;
+export declare function DialogProvider({ children, customStyles, }: DialogProviderProps): React.JSX.Element;
