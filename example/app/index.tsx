@@ -42,6 +42,12 @@ export default function IndexPage() {
             slideFrom="none"
             BlurComponent={BlurView}
           />
+          <DefaultDialog
+            buttonLabel="OPEN NO ANIM DIALOG"
+            buttonColor="brown"
+            slideFrom="none"
+            animation={false}
+          />
           <InputDialog
             buttonLabel="OPEN INPUT DIALOG"
             buttonColor="midnightblue"
