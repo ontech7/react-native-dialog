@@ -8,6 +8,7 @@ export function Dialog({ open, onPressOut, tint = "dark", animation = true, dura
     const progress = useRef(new Animated.Value(open ? 1 : 0)).current;
     useEffect(() => {
         if (!animation) {
+            progress.setValue(open ? 1 : 0);
             setMounted(open);
             return;
         }

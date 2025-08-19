@@ -39,6 +39,7 @@ export function Dialog({
 
   useEffect(() => {
     if (!animation) {
+      progress.setValue(open ? 1 : 0);
       setMounted(open);
       return;
     }

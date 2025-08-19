@@ -1,6 +1,6 @@
 {
   "name": "@ontech7/react-native-dialog",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Dialog component for React Native, structure similar to shadcn/ui. Compatible with Android & iOS.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
