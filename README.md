@@ -2,11 +2,11 @@
 
 ![platforms](https://img.shields.io/badge/platforms-Android%20%7C%20iOS-brightgreen.svg?style=flat-square&colorB=191A17)
 [![npm](https://img.shields.io/npm/v/@ontech7/react-native-dialog.svg?style=flat-square)](https://www.npmjs.com/package/@ontech7/react-native-dialog)
-[![npm](https://img.shields.io/npm/dm/@ontech/react-native-dialog.svg?style=flat-square&colorB=007ec6)](https://www.npmjs.com/package/@ontech7/react-native-dialog)
+[![npm](https://img.shields.io/npm/dm/@ontech7/react-native-dialog.svg?style=flat-square&colorB=007ec6)](https://www.npmjs.com/package/@ontech7/react-native-dialog)
 
 Dialog component for React Native. Compatible with Android & iOS.
 
-Features:
+**Features**:
 
 - Compatible with Expo SDK >= 49 and bare projects
 - `shadcn/ui` approach, with fully customizable components
@@ -16,6 +16,8 @@ Features:
 - Modifiable tint dark/light (default: `dark`)
 - Modifiable slide-in animation (default: `none`)
 - Possibility to add blur layer with `BlurComponent` prop
+
+---
 
 | No Slide                                                                                    | Slide-in                                                                                   |
 | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
@@ -42,7 +44,11 @@ You need to import the `DialogProvider` and put it in your App.js or root \_layo
 import { DialogProvider } from "@ontech7/react-native-dialog";
 
 export default function RootLayout() {
-  return <DialogProvider>{/* ... rest of the code here ... */}</DialogProvider>;
+  return (
+    <DialogProvider>
+      {/* ... rest of the code here ... */}
+    </DialogProvider>
+  )
 }
 ```
 
@@ -90,7 +96,7 @@ export default function Component(props: DialogProps) {
 
 ```jsx
 // Component.tsx
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 
 import {
   Dialog,
@@ -112,6 +118,7 @@ export default function Component(props: DialogProps) {
 
   const handleOpen = useCallback(() => setOpen(true), []);
   const handleClose = useCallback(() => setOpen(false), []);
+
   const handleConfirm = useCallback(() => {
     setText(textInputRef.current);
     setOpen(false);
