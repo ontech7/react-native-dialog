@@ -1,8 +1,10 @@
 # react-native-dialog
 
-![platforms](https://img.shields.io/badge/platforms-Android%20%7C%20iOS-brightgreen.svg?style=flat-square&colorB=191A17)
-[![npm](https://img.shields.io/npm/v/@ontech7/react-native-dialog.svg?style=flat-square)](https://www.npmjs.com/package/@ontech7/react-native-dialog)
-[![npm](https://img.shields.io/npm/dm/@ontech7/react-native-dialog.svg?style=flat-square&colorB=007ec6)](https://www.npmjs.com/package/@ontech7/react-native-dialog)
+![platforms](https://img.shields.io/badge/platforms-Android%20%7C%20iOS-brightgreen.svg?style=flat-square&colorB=191A17) 
+[![runs with expo](https://img.shields.io/badge/Runs%20with%20Expo-4630EB.svg?style=flat-square&logo=EXPO&labelColor=f3f3f3&logoColor=000)](https://snack.expo.io/@dontrok1/react-native-dialog-simple-example)
+[![npm](https://img.shields.io/npm/v/@ontech7/react-native-dialog.svg?style=flat-square)](https://www.npmjs.com/package/@ontech7/react-native-dialog) 
+[![npm](https://img.shields.io/npm/dm/@ontech7/react-native-dialog.svg?style=flat-square&colorB=red)](https://www.npmjs.com/package/@ontech7/react-native-dialog) 
+[![npm](https://img.shields.io/badge/types-included-blue?style=flat-square)](https://www.npmjs.com/package/@ontech7/react-native-dialog) 
 
 Dialog component for React Native. Compatible with Android & iOS.
 
