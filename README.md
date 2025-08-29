@@ -34,11 +34,14 @@ Simple and lightweight dialog component for React Native, structure similar to s
 <td> Style </td> <td> Code </td>
 </tr>
 <tr>
-<td> <a href="https://ui.shadcn.com/" target="_blank"><b>Shadcn/ui</b></a> <br /><br /> <img src="https://github.com/user-attachments/assets/3540789d-1f61-41cc-825b-a7d5ae9467f7" /> </td>
+<td> <a href="https://ui.shadcn.com/" target="_blank"><b>Shadcn/ui</b></a> <br /><br /> <img src="https://github.com/user-attachments/assets/3540789d-1f61-41cc-825b-a7d5ae9467f7" style="width: 320px; height: auto" /> </td>
 <td>
 
 ```jsx
-import { DialogProvider, shadcnStyle } from "@ontech7/react-native-dialog";
+import {
+  DialogProvider,
+  shadcnStyle
+} from "@ontech7/react-native-dialog";
 
 export default function RootLayout() {
   return (
