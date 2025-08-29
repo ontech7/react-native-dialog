@@ -6,49 +6,44 @@ import { useDialogStyles } from "./DialogProvider";
 
 export type DialogInputProps = TextInputProps & {
   label?: string;
-  containerStyle?: ViewStyle;
+  wrapperStyle?: ViewStyle;
   labelStyle?: TextStyle;
 };
 
 export function DialogInput({
   label,
   style,
-  containerStyle,
+  wrapperStyle,
   labelStyle,
   ...props
 }: DialogInputProps) {
   const { input } = useDialogStyles();
 
   return (
-    <View style={styles.container}>
-      {label && <Text style={[styles.label, labelStyle]}>{label}</Text>}
+    <View style={[styles.wrapper, input?.wrapper, wrapperStyle]}>
+      {label && (
+        <Text style={[styles.label, input?.label, labelStyle]}>{label}</Text>
+      )}
 
-      <View style={[styles.inputWrapper, containerStyle]}>
-        <TextInput
-          cursorColor="#000"
-          placeholderTextColor="#777"
-          {...props}
-          style={[styles.input, input, style]}
-        />
-      </View>
+      <TextInput
+        cursorColor="#000"
+        placeholderTextColor="#777"
+        {...props}
+        style={[styles.input, input?.textInput, style]}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {},
-  inputWrapper: {
-    flexDirection: "row",
+  wrapper: {},
+  input: {
+    width: "100%",
+    borderWidth: 1,
+    borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    marginBottom: 12,
-    borderWidth: 1.5,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  input: {
-    flex: 1,
-    paddingHorizontal: 8,
+    minHeight: 36,
     color: "#000",
   },
   label: {

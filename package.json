@@ -1,7 +1,7 @@
 {
   "name": "@ontech7/react-native-dialog",
-  "version": "1.1.2",
-  "description": "Dialog component for React Native, structure similar to shadcn/ui. Compatible with Android & iOS.",
+  "version": "1.2.0",
+  "description": "Simple and lightweight dialog component for React Native, structure similar to shadcn/ui, with dimezis background blur. Compatible with Android & iOS.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "files": [
@@ -18,8 +18,9 @@
     "react",
     "native",
     "portal",
-    "slider",
-    "items",
+    "dialog",
+    "shadcn",
+    "expo",
     "android",
     "ios",
     "component"

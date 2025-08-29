@@ -4,7 +4,8 @@ import { CustomDialog } from "@/components/CustomDialog";
 import { DefaultDialog } from "@/components/DefaultDialog";
 import { Divider } from "@/components/Divider";
 import { InputDialog } from "@/components/InputDialog";
-import { DialogProvider } from "@ontech7/react-native-dialog";
+import { ShadcnDialog } from "@/components/ShadcnDialog";
+import { DialogProvider, shadcnStyle } from "@ontech7/react-native-dialog";
 import { BlurView } from "expo-blur";
 import { ScrollView, Text, View } from "react-native";
 
@@ -46,12 +47,20 @@ export default function IndexPage() {
 
         <Divider />
 
-        <DefaultDialog
-          buttonLabel="OPEN NO ANIM DIALOG"
-          buttonColor="brown"
-          slideFrom="none"
-          animation={false}
-        />
+        <View style={{ gap: 20 }}>
+          <DefaultDialog
+            buttonLabel="OPEN NO ANIM DIALOG"
+            buttonColor="brown"
+            slideFrom="none"
+            animation={false}
+          />
+
+          <DefaultDialog
+            buttonLabel="OPEN CENTER DIALOG"
+            buttonColor="blue"
+            slideFrom="center"
+          />
+        </View>
 
         <View
           style={{
@@ -154,18 +163,31 @@ export default function IndexPage() {
               color: "#fff",
             },
             action: {
-              borderRadius: 8,
-              paddingHorizontal: 15,
-              paddingVertical: 5,
-              fontSize: 20,
-              fontWeight: "600",
-              backgroundColor: "#E0A91B",
+              button: {
+                borderRadius: 8,
+                paddingHorizontal: 15,
+                paddingVertical: 5,
+                backgroundColor: "#E0A91B",
+              },
+              text: {
+                fontSize: 20,
+                fontWeight: "600",
+              },
             },
           }}
         >
           <CustomDialog
             buttonLabel="OPEN GLOBAL CUSTOM DIALOG"
             buttonColor="rebeccapurple"
+          />
+        </DialogProvider>
+
+        <DialogProvider customStyles={shadcnStyle}>
+          <ShadcnDialog
+            buttonLabel="OPEN SHADCN DIALOG"
+            buttonColor="midnightblue"
+            buttonStyle={{ marginTop: 20 }}
+            slideFrom="center"
           />
         </DialogProvider>
       </ScrollView>

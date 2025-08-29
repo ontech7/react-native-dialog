@@ -7,3 +7,4 @@ export { DialogHeader, type DialogHeaderProps } from "./DialogHeader";
 export { DialogInput, type DialogInputProps } from "./DialogInput";
 export { DialogProvider, type DialogProviderProps, type DialogStyleConfig, } from "./DialogProvider";
 export { DialogTitle, type DialogTitleProps } from "./DialogTitle";
+export { shadcnStyle } from "./styles/shadcnStyle";

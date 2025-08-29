@@ -7,8 +7,15 @@ const defaultDialogStyles = {
     footer: {},
     title: {},
     description: {},
-    input: {},
-    action: {},
+    input: {
+        wrapper: {},
+        textInput: {},
+        label: {},
+    },
+    action: {
+        button: {},
+        text: {},
+    },
 };
 const DialogStyleContext = createContext(defaultDialogStyles);
 export const useDialogStyles = () => useContext(DialogStyleContext);

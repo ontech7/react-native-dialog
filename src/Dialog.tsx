@@ -11,18 +11,18 @@ import { useDialogStyles } from "./DialogProvider";
 import { Portal } from "./components/Portal";
 
 export type DialogProps = ViewProps & {
-  open: boolean;
+  open?: boolean;
   onPressOut?: () => Promise<void> | void;
   tint?: "light" | "dark";
   animation?: boolean;
   duration?: number;
   delay?: number;
-  slideFrom?: "top" | "bottom" | "left" | "right" | "none";
+  slideFrom?: "top" | "bottom" | "left" | "right" | "center" | "none";
   BlurComponent?: React.ComponentType<any>;
 };
 
 export function Dialog({
-  open,
+  open = true,
   onPressOut,
   tint = "dark",
   animation = true,
@@ -76,6 +76,18 @@ export function Dialog({
 
     if (slideFrom === "none") {
       return { opacity: progress };
+    }
+
+    if (slideFrom === "center") {
+      const scale = progress.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0.95, 1],
+      });
+
+      return {
+        opacity: progress,
+        transform: [{ scale }],
+      };
     }
 
     const translateValue =

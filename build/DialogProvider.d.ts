@@ -7,8 +7,15 @@ export type DialogStyleConfig = {
     footer?: ViewStyle;
     title?: TextStyle;
     description?: TextStyle;
-    input?: TextStyle;
-    action?: ViewStyle & Pick<TextStyle, "color" | "fontSize" | "fontWeight">;
+    input?: {
+        wrapper?: ViewStyle;
+        label?: TextStyle;
+        textInput?: TextStyle;
+    };
+    action?: {
+        button?: ViewStyle;
+        text?: TextStyle;
+    };
 };
 export declare const useDialogStyles: () => DialogStyleConfig;
 export type DialogProviderProps = {

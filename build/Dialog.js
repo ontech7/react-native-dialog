@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, TouchableWithoutFeedback, View, } from "react-native";
 import { useDialogStyles } from "./DialogProvider";
 import { Portal } from "./components/Portal";
-export function Dialog({ open, onPressOut, tint = "dark", animation = true, duration = 200, delay = 0, slideFrom = "none", BlurComponent, style, children, ...props }) {
+export function Dialog({ open = true, onPressOut, tint = "dark", animation = true, duration = 200, delay = 0, slideFrom = "none", BlurComponent, style, children, ...props }) {
     const { container } = useDialogStyles();
     const [mounted, setMounted] = useState(open);
     const progress = useRef(new Animated.Value(open ? 1 : 0)).current;
@@ -41,6 +41,16 @@ export function Dialog({ open, onPressOut, tint = "dark", animation = true, dura
         }
         if (slideFrom === "none") {
             return { opacity: progress };
+        }
+        if (slideFrom === "center") {
+            const scale = progress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.95, 1],
+            });
+            return {
+                opacity: progress,
+                transform: [{ scale }],
+            };
         }
         const translateValue = slideFrom === "bottom" || slideFrom === "right" ? 30 : -30;
         const translate = progress.interpolate({

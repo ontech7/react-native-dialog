@@ -5,7 +5,8 @@ import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import { useDialogStyles } from "./DialogProvider";
 
 export type DialogActionProps = TouchableOpacityProps & {
-  style?: ViewStyle & Pick<TextStyle, "color" | "fontSize" | "fontWeight">;
+  style?: ViewStyle;
+  textStyle?: TextStyle;
   adornmentStart?: React.ReactNode;
   adornmentEnd?: React.ReactNode;
 };
@@ -13,6 +14,7 @@ export type DialogActionProps = TouchableOpacityProps & {
 export function DialogAction({
   adornmentStart,
   adornmentEnd,
+  textStyle,
   style,
   children,
   ...props
@@ -23,27 +25,11 @@ export function DialogAction({
     <TouchableOpacity
       activeOpacity={0.7}
       {...props}
-      style={[styles.container, action, style]}
+      style={[styles.button, action?.button, style]}
     >
       {adornmentStart}
 
-      <Text
-        style={[
-          styles.text,
-          (style?.color !== undefined || action?.color !== undefined) && {
-            color: style?.color || action?.color,
-          },
-          (style?.fontSize !== undefined || action?.fontSize !== undefined) && {
-            fontSize: style?.fontSize || action?.fontSize,
-          },
-          (style?.fontWeight !== undefined ||
-            action?.fontWeight !== undefined) && {
-            fontWeight: style?.fontWeight || action?.fontWeight,
-          },
-        ]}
-      >
-        {children}
-      </Text>
+      <Text style={[styles.text, action?.text, textStyle]}>{children}</Text>
 
       {adornmentEnd}
     </TouchableOpacity>
@@ -51,7 +37,7 @@ export function DialogAction({
 }
 
 const styles = StyleSheet.create({
-  container: {
+  button: {
     flexDirection: "row",
     padding: 5,
     borderRadius: 8,

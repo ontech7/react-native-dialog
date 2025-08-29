@@ -1,3 +1,11 @@
+## v1.2.0
+
+- Add `center` animation
+- Add some default styles like `shadcnStyle`
+- Move `DialogAction` style to TouchableOpacity `style` and Text `textStyle`
+- Change `open` to optional (by default it's `true`)
+- Fix `DialogInput` structure and style
+
 ## v1.1.2
 
 - Add `delay` prop on `Dialog` component

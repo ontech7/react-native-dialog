@@ -10,8 +10,15 @@ export type DialogStyleConfig = {
   footer?: ViewStyle;
   title?: TextStyle;
   description?: TextStyle;
-  input?: TextStyle;
-  action?: ViewStyle & Pick<TextStyle, "color" | "fontSize" | "fontWeight">;
+  input?: {
+    wrapper?: ViewStyle;
+    label?: TextStyle;
+    textInput?: TextStyle;
+  };
+  action?: {
+    button?: ViewStyle;
+    text?: TextStyle;
+  };
 };
 
 const defaultDialogStyles: DialogStyleConfig = {
@@ -21,8 +28,15 @@ const defaultDialogStyles: DialogStyleConfig = {
   footer: {},
   title: {},
   description: {},
-  input: {},
-  action: {},
+  input: {
+    wrapper: {},
+    textInput: {},
+    label: {},
+  },
+  action: {
+    button: {},
+    text: {},
+  },
 };
 
 const DialogStyleContext =
