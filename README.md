@@ -35,7 +35,7 @@ Simple and lightweight dialog component for React Native, structure similar to s
 
 | [Shadcn/ui](https://ui.shadcn.com/) |
 | ----------------------------------- |
-| ![shadcn](https://github.com/user-attachments/assets/9de740f0-e712-4afe-aa68-57849fc9c191) |
+| ![shadcn](https://github.com/user-attachments/assets/3540789d-1f61-41cc-825b-a7d5ae9467f7) |
 
 ---
 
