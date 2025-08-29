@@ -19,8 +19,6 @@ Simple and lightweight dialog component for React Native, structure similar to s
 - Modifiable slide-in animation (default: `none`)
 - Possibility to add blur layer with `BlurComponent` prop
 
----
-
 ## Showcase
 
 | No Slide                                                                                    | Slide-in                                                                                   |
@@ -29,15 +27,31 @@ Simple and lightweight dialog component for React Native, structure similar to s
 | **Input**                                                                                   | **Global Custom Styles**                                                                   |
 | ![input](https://github.com/user-attachments/assets/f16b4a23-bc10-4bfd-81e7-09cbdee20226)   | ![custom](https://github.com/user-attachments/assets/d282916b-3db6-4ea6-a2dc-6d1cf7078d2c) |
 
----
+## Custom themes / styles
 
-## Custom styles
+<table>
+<tr>
+<td> Style </td> <td> Code </td>
+</tr>
+<tr>
+<td> <a href="https://ui.shadcn.com/" target="_blank"><b>Shadcn/ui</b></a> <br /><br /> <img src="https://github.com/user-attachments/assets/3540789d-1f61-41cc-825b-a7d5ae9467f7" /> </td>
+<td>
 
-| [Shadcn/ui](https://ui.shadcn.com/) |
-| ----------------------------------- |
-| ![shadcn](https://github.com/user-attachments/assets/3540789d-1f61-41cc-825b-a7d5ae9467f7) |
+```jsx
+import { DialogProvider, shadcnStyle } from "@ontech7/react-native-dialog";
 
----
+export default function RootLayout() {
+  return (
+    <DialogProvider customStyles={shadcnStyle}>
+      {/* ... rest of the code here ... */}
+    </DialogProvider>
+  )
+}
+```
+
+</td>
+</tr>
+</table>
 
 ## Usage
 
@@ -56,11 +70,13 @@ You need to import the `DialogProvider` and put it in your App.js or root \_layo
 import { DialogProvider } from "@ontech7/react-native-dialog";
 
 export default function RootLayout() {
-  return <DialogProvider>{/* ... rest of the code here ... */}</DialogProvider>;
+  return (
+    <DialogProvider>
+      {/* ... rest of the code here ... */}
+    </DialogProvider>
+  )
 }
 ```
-
-### Default
 
 ```jsx
 // Component.tsx
@@ -100,64 +116,6 @@ export default function Component(props: DialogProps) {
 }
 ```
 
-### Input
-
-```jsx
-// Component.tsx
-import { useState, useCallback, useRef } from "react";
-
-import {
-  Dialog,
-  DialogAction,
-  DialogInput,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
-  type DialogProps,
-} from "@ontech7/react-native-dialog";
-
-export default function Component(props: DialogProps) {
-  const [open, setOpen] = useState(false);
-
-  /* avoid input lag */
-  const textInputRef = useRef(null);
-  const [text, setText] = useState("");
-
-  const handleOpen = useCallback(() => setOpen(true), []);
-  const handleClose = useCallback(() => setOpen(false), []);
-
-  const handleConfirm = useCallback(() => {
-    setText(textInputRef.current);
-    setOpen(false);
-  }, []);
-
-  return (
-    <Dialog open={open} {...props}>
-      <DialogHeader>
-        <DialogTitle>Attention!</DialogTitle>
-        <DialogDescription>
-          This is an INPUT dialog.{"\n"}Please click one of the buttons below to
-          close it.
-        </DialogDescription>
-      </DialogHeader>
-      <DialogBody>
-        <DialogInput
-          placeholder="Write something..."
-          onChangeText={(text) => (textInputRef.current = text)}
-        />
-      </DialogBody>
-      <DialogFooter>
-        <DialogAction onPress={handleClose}>Close</DialogAction>
-        <DialogAction onPress={handleConfirm}>Confirm</DialogAction>
-      </DialogFooter>
-    </Dialog>
-  );
-}
-```
-
----
-
 ## Blur Component
 
 It's possible to add blur component to Dialog, such as `expo-blur`, `@react-native-community/blur` or `@sbaiahmed1/react-native-blur`.
@@ -178,28 +136,26 @@ export default function Component(props) {
 
 ![blur](https://github.com/user-attachments/assets/e46fd559-66d2-4f90-9cb3-234058857c9f)
 
----
-
 ## Props
 
 ### DialogProvider
 
 | Name           | Description                                               |
 | -------------- | --------------------------------------------------------- |
-| `customStyles` | Possibility to customize globally all provided components |
+| customStyles | Possibility to customize globally all provided components |
 
 ### Dialog
 
 | Name            | Description                                                                                                        |
 | --------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `open`          | Show/hide dialog (default: `true`)                                                                                 |
-| `onPressOut`    | Add callback when pressing out of the dialog                                                                       |
-| `tint`          | Backdrop background color. Possible values: `light`, `dark` (default: `dark`)                                      |
-| `animation`     | Enable or disable animations (default: `true`)                                                                     |
-| `duration`      | Duration of the animations (default: `200`)                                                                        |
-| `delay`         | Delay when opening the dialog (default: `0`)                                                                       |
-| `slideFrom`     | Animation slide-in. Possible values: `none`, `bottom`, `top`, `left`, `right`, `center`. (default: `none`)         |
-| `BlurComponent` | Possibility to add BlurView such as `expo-blur`, `@react-native-community/blur` or `@sbaiahmed1/react-native-blur` |
+| open          | Show/hide dialog (default: `true`)                                                                                 |
+| onPressOut    | Add callback when pressing out of the dialog                                                                       |
+| tint          | Backdrop background color. Possible values: `light`, `dark` (default: `dark`)                                      |
+| animation     | Enable or disable animations (default: `true`)                                                                     |
+| duration      | Duration of the animations (default: `200`)                                                                        |
+| delay         | Delay when opening the dialog (default: `0`)                                                                       |
+| slideFrom     | Animation slide-in. Possible values: `none`, `bottom`, `top`, `left`, `right`, `center`. (default: `none`)         |
+| BlurComponent | Possibility to add BlurView such as `expo-blur`, `@react-native-community/blur` or `@sbaiahmed1/react-native-blur` |
 
 ---
 
