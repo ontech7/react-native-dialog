@@ -13,6 +13,7 @@ Simple and lightweight dialog component for React Native, structure similar to s
 - Compatible with Expo SDK >= 49 and bare projects
 - `shadcn/ui` approach, with fully customizable components
 - Possibility to change global styles from the `DialogProvider`
+- Light & dark mode theming, with built-in `shadcnStyle` and `materialStyle` presets
 - Portalized pupup/dialog
 - Modifiable duration (default: `200`)
 - Modifiable tint dark/light (default: `dark`)
@@ -56,6 +57,40 @@ export default function RootLayout() {
 </tr>
 </table>
 
+Two presets ship out of the box, each as a `{ light, dark }` theme: **`shadcnStyle`** (matches the shadcn/ui `Dialog`) and **`materialStyle`** (Material Design 3).
+
+## Dark mode
+
+`customStyles` accepts either a single `DialogStyleConfig` (light only, as before) or a `{ light, dark }` theme. All built-in presets are themes. The active variant is chosen by `colorScheme`, which **defaults to `"light"`** — you decide what drives dark mode (the OS, or your own in-app toggle):
+
+```jsx
+import { useColorScheme } from "react-native";
+import { DialogProvider, shadcnStyle } from "@ontech7/react-native-dialog";
+
+// follow the OS appearance
+const scheme = useColorScheme(); // "light" | "dark"
+<DialogProvider customStyles={shadcnStyle} colorScheme={scheme ?? "light"}>
+  {/* ... */}
+</DialogProvider>;
+
+// or follow an in-app theme toggle
+<DialogProvider customStyles={shadcnStyle} colorScheme={isDark ? "dark" : "light"}>
+  {/* ... */}
+</DialogProvider>;
+```
+
+Without `colorScheme`, the light variant is used. You can also define your own styles, either as a theme or via the separate `darkStyles` prop:
+
+```jsx
+<DialogProvider
+  customStyles={myLightStyles}
+  darkStyles={myDarkStyles}
+  colorScheme={isDark ? "dark" : "light"}
+>
+  {/* ... */}
+</DialogProvider>
+```
+
 ## Usage
 
 ```bash
@@ -80,6 +115,9 @@ export default function RootLayout() {
   )
 }
 ```
+
+> [!IMPORTANT]
+> Mount `DialogProvider` at a **full-screen root** (your `App.tsx` / root `_layout.tsx`). The dialog overlay is rendered in-tree relative to the provider, so its parent must fill the screen and must not be transformed or clipped (`overflow: "hidden"`). On React Native's New Architecture (RN 0.85+ / Expo SDK 56) a parent that collapses to zero size will make the backdrop disappear. Avoid wrapping `DialogProvider` in a sized/transformed container.
 
 ```jsx
 // Component.tsx
@@ -137,15 +175,32 @@ export default function Component(props) {
 }
 ```
 
+Use `blurProps` to forward (and override) props on your `BlurComponent`. This is how you configure blur per SDK without the library guessing. For example, with `expo-blur` on Expo SDK 56 the Android native blur needs the new `blurMethod` + `blurTarget` API:
+
+```jsx
+import { BlurView } from "expo-blur";
+
+<Dialog
+  BlurComponent={BlurView}
+  blurProps={{ blurMethod: "dimezisBlurView", blurTarget }}
+  {...props}
+/>;
+```
+
+> [!NOTE]
+> The library no longer forces `experimentalBlurMethod="dimezisBlurView"`, which was deprecated in SDK 56 and now requires a `blurTarget`. On iOS the default blur works out of the box; for Android blur, opt in via `blurProps`.
+
 ![blur](https://github.com/user-attachments/assets/e46fd559-66d2-4f90-9cb3-234058857c9f)
 
 ## Props
 
 ### DialogProvider
 
-| Name           | Description                                               |
-| -------------- | --------------------------------------------------------- |
-| customStyles | Possibility to customize globally all provided components |
+| Name         | Description                                                                                                          |
+| ------------ | -------------------------------------------------------------------------------------------------------------------- |
+| customStyles | Global styles for all components. A `DialogStyleConfig` (light only) or a `{ light, dark }` theme (e.g. `shadcnStyle`) |
+| darkStyles   | Styles applied when the active scheme is dark (when `customStyles` is a single config). Falls back to the light ones  |
+| colorScheme  | Active scheme: `light` or `dark`. Defaults to `light` — drive it from `useColorScheme()` or your in-app theme toggle      |
 
 ### Dialog
 
@@ -159,6 +214,8 @@ export default function Component(props) {
 | delay         | Delay when opening the dialog (default: `0`)                                                                       |
 | slideFrom     | Animation slide-in. Possible values: `none`, `bottom`, `top`, `left`, `right`, `center`. (default: `none`)         |
 | BlurComponent | Possibility to add BlurView such as `expo-blur`, `@react-native-community/blur` or `@sbaiahmed1/react-native-blur` |
+| blurProps     | Props forwarded to (and overriding the defaults on) `BlurComponent`, e.g. `{ blurMethod: "dimezisBlurView", blurTarget }` on Expo SDK 56 expo-blur |
+| overlayColor  | Scrim color over the backdrop (and over the blur, if any). Defaults from `tint`; e.g. `rgba(0,0,0,0.5)` for a darker overlay behind a blurred dialog |
 
 ---
 

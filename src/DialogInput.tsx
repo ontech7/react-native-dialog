@@ -19,6 +19,10 @@ export function DialogInput({
 }: DialogInputProps) {
   const { input } = useDialogStyles();
 
+  // Default the cursor to the themed text color so it stays visible in dark
+  // mode; an explicit `cursorColor` prop still wins (spread after).
+  const themedColor = input?.textInput?.color as string | undefined;
+
   return (
     <View style={[styles.wrapper, input?.wrapper, wrapperStyle]}>
       {label && (
@@ -26,7 +30,7 @@ export function DialogInput({
       )}
 
       <TextInput
-        cursorColor="#000"
+        cursorColor={themedColor ?? "#000"}
         placeholderTextColor="#777"
         {...props}
         style={[styles.input, input?.textInput, style]}

@@ -1,14 +1,16 @@
 {
   "compilerOptions": {
+    "rootDir": "src",
     "outDir": "build",
     "declaration": true,
     "module": "ESNext",
     "target": "ESNext",
     "jsx": "react",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
+    "noEmitOnError": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]

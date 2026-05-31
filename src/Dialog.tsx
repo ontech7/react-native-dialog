@@ -4,6 +4,7 @@ import {
   Easing,
   StyleSheet,
   TouchableWithoutFeedback,
+  useWindowDimensions,
   View,
   type ViewProps,
 } from "react-native";
@@ -19,6 +20,19 @@ export type DialogProps = ViewProps & {
   delay?: number;
   slideFrom?: "top" | "bottom" | "left" | "right" | "center" | "none";
   BlurComponent?: React.ComponentType<any>;
+  /**
+   * Extra props forwarded to `BlurComponent`, overriding the defaults. Use this
+   * to configure your blur library per SDK — e.g. on Expo SDK 56 expo-blur the
+   * Android native blur is `blurProps={{ blurMethod: "dimezisBlurView", blurTarget }}`,
+   * while on older SDKs it was `blurProps={{ experimentalBlurMethod: "dimezisBlurView" }}`.
+   */
+  blurProps?: Record<string, any>;
+  /**
+   * Color of the scrim painted over the backdrop (on top of the blur, if any).
+   * Defaults are derived from `tint`; pass this to force a specific scrim — e.g.
+   * a darker overlay behind a blurred dialog (`overlayColor="rgba(0,0,0,0.5)"`).
+   */
+  overlayColor?: string;
 };
 
 export function Dialog({
@@ -30,11 +44,14 @@ export function Dialog({
   delay = 0,
   slideFrom = "none",
   BlurComponent,
+  blurProps,
+  overlayColor,
   style,
   children,
   ...props
 }: DialogProps) {
   const { container } = useDialogStyles();
+  const { width, height } = useWindowDimensions();
   const [mounted, setMounted] = useState(open);
 
   const progress = useRef(new Animated.Value(open ? 1 : 0)).current;
@@ -112,42 +129,64 @@ export function Dialog({
     return null;
   }
 
+  // Scrim painted over the backdrop (and over the blur, if any). With a blur the
+  // default is a lighter veil so the blur stays visible, but still dark/light
+  // enough to set the dialog apart. Override with `overlayColor` for full control.
   const transparencyBackground =
-    tint === "dark"
+    overlayColor ??
+    (tint === "dark"
       ? BlurComponent
-        ? "#0003"
+        ? "#0006"
         : "#0008"
       : BlurComponent
-      ? "#fff3"
-      : "#fff8";
+      ? "#fff6"
+      : "#fff8");
 
   const BlurComp = (BlurComponent ?? View) as React.ComponentType<any>;
 
+  // Pin the overlay to the window size instead of StyleSheet.absoluteFill / "100%".
+  // Percentage and absolute-fill sizing resolve against the Portal host's parent,
+  // whose measured size the New Architecture (RN 0.85+, Expo SDK 56) no longer
+  // guarantees — it can collapse to 0, making the backdrop disappear. Explicit
+  // window dimensions cover the screen regardless of the ancestor layout.
+  const overlay = {
+    position: "absolute" as const,
+    top: 0,
+    left: 0,
+    width,
+    height,
+  };
+
   return (
     <Portal>
-      <BlurComp
-        /* expo-blur */
-        intensity={25}
-        tint={tint}
-        experimentalBlurMethod="dimezisBlurView"
-        blurReducedFactor={8}
-        /* sbaiahmed1/react-native-blur */
-        blurAmount={30}
-        blurType={tint}
-        reducedTransparencyFallbackColor={transparencyBackground}
-        /* @react-native-community/blur */
-        downsampleFactor={8}
-        style={StyleSheet.absoluteFillObject}
-      />
-      <Animated.View
-        style={[
-          StyleSheet.absoluteFillObject,
-          { backgroundColor: transparencyBackground },
-          { opacity: progress },
-        ]}
-      />
+      {/* Backdrop (blur + dim) fades in/out with `progress` so the blur ramps up
+          gradually instead of popping in. `pointerEvents="none"` lets the taps
+          fall through to the dismiss layer below. */}
+      <Animated.View style={[overlay, { opacity: progress }]} pointerEvents="none">
+        <BlurComp
+          /* expo-blur */
+          intensity={25}
+          tint={tint}
+          blurReductionFactor={8}
+          /* sbaiahmed1/react-native-blur */
+          blurAmount={30}
+          blurType={tint}
+          reducedTransparencyFallbackColor={transparencyBackground}
+          /* @react-native-community/blur */
+          downsampleFactor={8}
+          /* Consumer overrides (e.g. expo-blur SDK 56 `blurMethod` + `blurTarget`) */
+          {...blurProps}
+          style={[StyleSheet.absoluteFill, blurProps?.style]}
+        />
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: transparencyBackground },
+          ]}
+        />
+      </Animated.View>
       <TouchableWithoutFeedback onPress={onPressOut}>
-        <View style={styles.container}>
+        <View style={[overlay, styles.center]}>
           <Animated.View
             {...props}
             style={[styles.dialog, dialogAnimStyle, container, style]}
@@ -161,14 +200,9 @@ export function Dialog({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
+  center: {
     justifyContent: "center",
     alignItems: "center",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
     zIndex: 1000,
   },
   dialog: {

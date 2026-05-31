@@ -1,2 +1,2 @@
 import type { DialogStyleTheme } from "../DialogProvider";
-export declare const shadcnStyle: DialogStyleTheme;
+export declare const materialStyle: DialogStyleTheme;

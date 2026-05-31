@@ -8,3 +8,4 @@ export { DialogInput } from "./DialogInput";
 export { DialogProvider, } from "./DialogProvider";
 export { DialogTitle } from "./DialogTitle";
 export { shadcnStyle } from "./styles/shadcnStyle";
+export { materialStyle } from "./styles/materialStyle";

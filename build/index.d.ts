@@ -5,6 +5,7 @@ export { DialogDescription, type DialogDescriptionProps, } from "./DialogDescrip
 export { DialogFooter, type DialogFooterProps } from "./DialogFooter";
 export { DialogHeader, type DialogHeaderProps } from "./DialogHeader";
 export { DialogInput, type DialogInputProps } from "./DialogInput";
-export { DialogProvider, type DialogProviderProps, type DialogStyleConfig, } from "./DialogProvider";
+export { DialogProvider, type DialogProviderProps, type DialogStyleConfig, type DialogStyleTheme, } from "./DialogProvider";
 export { DialogTitle, type DialogTitleProps } from "./DialogTitle";
 export { shadcnStyle } from "./styles/shadcnStyle";
+export { materialStyle } from "./styles/materialStyle";

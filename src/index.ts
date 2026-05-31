@@ -12,7 +12,9 @@ export {
   DialogProvider,
   type DialogProviderProps,
   type DialogStyleConfig,
+  type DialogStyleTheme,
 } from "./DialogProvider";
 export { DialogTitle, type DialogTitleProps } from "./DialogTitle";
 
 export { shadcnStyle } from "./styles/shadcnStyle";
+export { materialStyle } from "./styles/materialStyle";
