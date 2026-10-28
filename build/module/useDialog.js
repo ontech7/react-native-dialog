@@ -28,9 +28,28 @@ export function DialogControllerProvider({ children, }) {
     const [closing, setClosing] = useState(false);
     const queueRef = useRef(queue);
     queueRef.current = queue;
-    // Requests still pending when the provider goes away are cancelled.
-    useEffect(() => () => queueRef.current.forEach((request) => request.resolve(false)), []);
+    // `true` from the first render, so children can call `confirm()` from their
+    // own mount effects (which run before this provider's).
+    const mounted = useRef(true);
+    useEffect(() => {
+        mounted.current = true;
+        // Requests still pending when the provider goes away are cancelled, and
+        // their dialog closed with them: on Fast Refresh / StrictMode re-runs the
+        // provider stays, and a dialog must not stay up with its answer given.
+        return () => {
+            mounted.current = false;
+            queueRef.current.forEach((request) => request.resolve(false));
+            queueRef.current = [];
+            setQueue([]);
+            setClosing(false);
+        };
+    }, []);
     const enqueue = useCallback((kind, options) => new Promise((resolve) => {
+        // e.g. called from a stale closure: settle instead of hanging forever
+        if (!mounted.current) {
+            resolve(false);
+            return;
+        }
         const request = { id: ++NEXT_REQUEST_ID, kind, options, resolve };
         setQueue((prev) => [...prev, request]);
     }), []);

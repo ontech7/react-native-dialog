@@ -37,6 +37,7 @@ exports.Dialog = Dialog;
 const react_1 = __importStar(require("react"));
 const react_native_1 = require("react-native");
 const DialogControllerContext_1 = require("./DialogControllerContext");
+const DialogLayoutContext_1 = require("./DialogLayoutContext");
 const theme_1 = require("./theme");
 const Portal_1 = require("./components/Portal");
 const PortalProvider_1 = require("./components/PortalProvider");
@@ -44,12 +45,11 @@ const PortalProvider_1 = require("./components/PortalProvider");
 const VERTICAL_MARGIN = 64;
 /** Same, while the keyboard is up: tighter, so a form still fits on small phones. */
 const KEYBOARD_VERTICAL_MARGIN = 16;
-let NEXT_DIALOG_ID = 0;
 function Dialog({ open = true, onRequestClose, onPressOut, onShow, onDismiss, avoidKeyboard = true, tint = "dark", animation = true, duration = 200, delay = 0, slideFrom = "none", BlurComponent, blurProps, overlayColor, style, children, testID, pointerEvents, ...props }) {
     const dialogStyles = (0, theme_1.useDialogStyles)();
     const controller = (0, react_1.useContext)(DialogControllerContext_1.DialogControllerContext);
     const modalStack = (0, react_1.useContext)(PortalProvider_1.ModalStackContext);
-    const dialogId = (0, react_1.useRef)(String(++NEXT_DIALOG_ID)).current;
+    const dialogId = (0, react_1.useId)();
     const { width, height } = (0, react_native_1.useWindowDimensions)();
     const [mounted, setMounted] = (0, react_1.useState)(open);
     const reduceMotion = useReduceMotion();
@@ -111,7 +111,8 @@ function Dialog({ open = true, onRequestClose, onPressOut, onShow, onDismiss, av
         // press must not reach (and e.g. pop) the screen behind it, even when the
         // dialog can't be dismissed.
         const subscription = react_native_1.BackHandler.addEventListener("hardwareBackPress", () => {
-            callbacks.current.onRequestClose?.();
+            const { onRequestClose, onPressOut } = callbacks.current;
+            (onRequestClose ?? onPressOut)?.();
             return true;
         });
         return () => subscription.remove();
@@ -160,11 +161,12 @@ function Dialog({ open = true, onRequestClose, onPressOut, onShow, onDismiss, av
         return null;
     }
     // Taps are ignored while the close animation runs, so a double tap can't
-    // trigger an action twice or dismiss twice.
+    // trigger an action twice or dismiss twice. `onPressOut` is only a fallback,
+    // so passing both doesn't close twice.
     const requestClose = open
         ? () => {
-            callbacks.current.onPressOut?.();
-            callbacks.current.onRequestClose?.();
+            const { onRequestClose, onPressOut } = callbacks.current;
+            (onRequestClose ?? onPressOut)?.();
         }
         : undefined;
     // Scrim painted over the backdrop (and over the blur, if any). With a blur the
@@ -218,28 +220,57 @@ function Dialog({ open = true, onRequestClose, onPressOut, onShow, onDismiss, av
                             styles.center,
                             { paddingBottom: keyboardHeight },
                         ], pointerEvents: "box-none" },
-                        react_1.default.createElement(react_native_1.Animated.View, { ...props, testID: testID, pointerEvents: open ? pointerEvents : "none", style: [
-                                styles.dialog,
-                                { maxHeight },
-                                dialogAnimStyle,
-                                dialogStyles.container,
-                                style,
-                            ] }, children)))))));
+                        react_1.default.createElement(DialogPanel, { ...props, testID: testID, pointerEvents: open ? pointerEvents : "none", maxHeight: maxHeight, style: [dialogAnimStyle, dialogStyles.container, style] }, children)))))));
 }
+/**
+ * The dialog box. Rendered inside the portal, so a scrollable `DialogBody`
+ * can turn the height cap on without a round trip through the portal.
+ */
+function DialogPanel({ maxHeight, style, children, ...props }) {
+    const [scrollables, setScrollables] = (0, react_1.useState)(0);
+    const layout = (0, react_1.useMemo)(() => ({
+        registerScrollable: () => {
+            setScrollables((count) => count + 1);
+            return () => setScrollables((count) => count - 1);
+        },
+    }), []);
+    return (react_1.default.createElement(DialogLayoutContext_1.DialogLayoutContext.Provider, { value: layout },
+        react_1.default.createElement(react_native_1.Animated.View, { ...props, style: [styles.dialog, scrollables > 0 && { maxHeight }, style] }, children)));
+}
+// One OS subscription shared by every dialog, active while at least one is
+// mounted (a list can render a closed dialog per row).
+const reduceMotionStore = (() => {
+    let reduceMotion = false;
+    let subscription;
+    const listeners = new Set();
+    const set = (enabled) => {
+        if (enabled === reduceMotion)
+            return;
+        reduceMotion = enabled;
+        listeners.forEach((listener) => listener());
+    };
+    return {
+        get: () => reduceMotion,
+        subscribe: (listener) => {
+            listeners.add(listener);
+            if (listeners.size === 1) {
+                react_native_1.AccessibilityInfo.isReduceMotionEnabled()
+                    .then(set)
+                    .catch(() => { });
+                subscription = react_native_1.AccessibilityInfo.addEventListener("reduceMotionChanged", set);
+            }
+            return () => {
+                listeners.delete(listener);
+                if (listeners.size === 0) {
+                    subscription?.remove();
+                    subscription = undefined;
+                }
+            };
+        },
+    };
+})();
 function useReduceMotion() {
-    const [reduceMotion, setReduceMotion] = (0, react_1.useState)(false);
-    (0, react_1.useEffect)(() => {
-        let active = true;
-        react_native_1.AccessibilityInfo.isReduceMotionEnabled()
-            .then((enabled) => active && setReduceMotion(enabled))
-            .catch(() => { });
-        const subscription = react_native_1.AccessibilityInfo.addEventListener("reduceMotionChanged", setReduceMotion);
-        return () => {
-            active = false;
-            subscription?.remove();
-        };
-    }, []);
-    return reduceMotion;
+    return (0, react_1.useSyncExternalStore)(reduceMotionStore.subscribe, reduceMotionStore.get);
 }
 /** Height of the software keyboard while `enabled`, 0 otherwise. */
 function useKeyboardHeight(enabled) {

@@ -244,6 +244,26 @@ describe("useDialog", () => {
     expect(screen.getByText("Really delete?")).toBeOnTheScreen();
   });
 
+  it("cancels pending requests and closes their dialog when the provider unmounts", async () => {
+    const dialog = await renderController();
+
+    let answer: Promise<boolean>;
+    await act(async () => {
+      answer = dialog.confirm({ title: "Pending" });
+    });
+    expect(screen.getByText("Pending")).toBeOnTheScreen();
+
+    await screen.unmount();
+    await expect(answer!).resolves.toBe(false);
+  });
+
+  it("resolves requests made after the provider unmounted, instead of hanging", async () => {
+    const dialog = await renderController();
+    await screen.unmount();
+
+    await expect(dialog.confirm({ title: "Too late" })).resolves.toBe(false);
+  });
+
   it("throws a helpful error outside a DialogProvider", async () => {
     jest.spyOn(console, "error").mockImplementation(() => {});
 

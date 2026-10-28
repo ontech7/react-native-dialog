@@ -99,7 +99,7 @@ A `DialogProvider` nested inside another one sets the styles for the dialogs bel
 </Modal>
 ```
 
-To only scope styles for part of a screen, pass `host={false}`: its dialogs render at the parent provider, covering the whole screen even when the nested provider sits inside a `ScrollView` or a sized view.
+To only scope styles for part of a screen, pass `host={false}`: its dialogs render at the parent provider, covering the whole screen even when the nested provider sits inside a `ScrollView` or a sized view. Set `host` once: changing it at runtime remounts everything below the provider.
 
 ```jsx
 <DialogProvider customStyles={shadcnStyle}>
@@ -222,11 +222,13 @@ While a dialog is open, the Android back button never reaches the screen behind 
 
 Taps on the dialog's own content never close it, and taps are ignored while the close animation runs, so an action can't fire twice.
 
-`onPressOut` still works but is deprecated: it only covers the backdrop tap.
+`onPressOut` still works but is deprecated: it's kept as a fallback, called for the backdrop, the back button and the escape gesture only when `onRequestClose` isn't set.
+
+Dialog content renders at the provider that hosts it, so React contexts provided *between* that provider and the `<Dialog>` (e.g. a screen-level theme or i18n provider) aren't available inside the dialog. Put such providers above your root `DialogProvider`, or wrap the dialog's content in them. The library's own contexts (styles, `useDialog`) are passed through for you.
 
 ### Long content
 
-Add `scrollable` to `DialogBody` for content that can be taller than the screen (release notes, lists, terms). The body scrolls while the header and footer stay visible. The dialog is capped to the window height (minus the keyboard, when it's open).
+Add `scrollable` to `DialogBody` for content that can be taller than the screen (release notes, lists, terms). The body scrolls while the header and footer stay visible: with a scrollable body, the dialog is capped to the window height (minus the keyboard, when it's open). Without one, the dialog grows with its content.
 
 ```jsx
 <Dialog open={open} onRequestClose={handleClose}>
@@ -295,7 +297,7 @@ function DeleteButton({ onDelete }) {
 
 ### Keyboard
 
-Dialogs move up when the software keyboard opens, so inputs and actions stay visible (on small phones the dialog may also use more of the screen height while the keyboard is up). Disable it with `avoidKeyboard={false}`.
+Dialogs move up when the software keyboard opens, so inputs and actions stay visible. For long forms on small phones, make the body `scrollable` so the dialog fits above the keyboard. Disable it with `avoidKeyboard={false}`.
 
 ### Testing with Jest
 
@@ -349,7 +351,7 @@ import { BlurView } from "expo-blur";
 | customStyles | Global styles for all components. A `DialogStyleConfig` (light only) or a `{ light, dark }` theme (e.g. `shadcnStyle`) |
 | darkStyles   | Styles applied when the active scheme is dark (when `customStyles` is a single config). Falls back to the light ones   |
 | colorScheme  | Active scheme. `"dark"` selects the dark styles, anything else (including `null`) the light ones. Default: `light`     |
-| host         | Render the dialogs below this provider here (default: `true`). `false` on a nested provider that only scopes styles   |
+| host         | Render the dialogs below this provider here (default: `true`). `false` on a nested provider that only scopes styles. Don't change it at runtime |
 
 ### Dialog
 
@@ -359,7 +361,7 @@ Also accepts every `View` prop (`style`, `testID`, …), applied to the dialog c
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | open           | Show/hide dialog (default: `true`)                                                                                                                      |
 | onRequestClose | Called on backdrop tap, Android back button and iOS escape gesture. Omit it to make the dialog non-dismissible (back is still blocked while open)       |
-| onPressOut     | **Deprecated**, use `onRequestClose`. Called on backdrop tap only                                                                                      |
+| onPressOut     | **Deprecated**, use `onRequestClose`. Fallback used for backdrop, back button and escape gesture when `onRequestClose` isn't set                      |
 | onShow         | Called once the open animation has finished                                                                                                             |
 | onDismiss      | Called once the close animation has finished and the dialog is unmounted                                                                                |
 | avoidKeyboard  | Move the dialog above the software keyboard (default: `true`)                                                                                           |

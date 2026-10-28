@@ -173,6 +173,41 @@ describe("dismissing", () => {
     expect(onRequestClose).toHaveBeenCalledTimes(1);
   });
 
+  it("calls only onRequestClose when onPressOut is passed too", async () => {
+    const onRequestClose = jest.fn();
+    const onPressOut = jest.fn();
+
+    await render(
+      <DialogProvider>
+        <Dialog
+          testID="dialog"
+          onRequestClose={onRequestClose}
+          onPressOut={onPressOut}
+        />
+      </DialogProvider>
+    );
+
+    await fireEvent.press(screen.getByTestId("dialog-backdrop"));
+
+    expect(onRequestClose).toHaveBeenCalledTimes(1);
+    expect(onPressOut).not.toHaveBeenCalled();
+  });
+
+  it("falls back to onPressOut for the Android back button (1.3 apps keep working)", async () => {
+    const back = captureListeners(BackHandler, "addEventListener");
+    const onPressOut = jest.fn();
+
+    await render(
+      <DialogProvider>
+        <Dialog onPressOut={onPressOut} />
+      </DialogProvider>
+    );
+
+    await act(async () => back.emit("hardwareBackPress"));
+
+    expect(onPressOut).toHaveBeenCalledTimes(1);
+  });
+
   it("ignores backdrop taps and action presses while the close animation runs", async () => {
     const onRequestClose = jest.fn();
     const onAction = jest.fn();
@@ -347,16 +382,31 @@ describe("lifecycle callbacks", () => {
 });
 
 describe("layout", () => {
-  it("caps the dialog height to the window so the footer stays reachable", async () => {
+  it("caps the dialog height to the window when the body is scrollable", async () => {
     await render(
       <DialogProvider>
-        <Dialog testID="dialog" />
+        <Dialog testID="dialog">
+          <DialogBody scrollable />
+        </Dialog>
       </DialogProvider>
     );
 
     expect(screen.getByTestId("dialog")).toHaveStyle({
       maxHeight: WINDOW_HEIGHT - 2 * 64,
     });
+  });
+
+  it("does not cap the height without a scrollable body (nothing could shrink)", async () => {
+    await render(
+      <DialogProvider>
+        <Dialog testID="dialog">
+          <DialogBody />
+        </Dialog>
+      </DialogProvider>
+    );
+
+    const style = StyleSheet.flatten(screen.getByTestId("dialog").props.style);
+    expect(style.maxHeight).toBeUndefined();
   });
 
   it("DialogBody `scrollable` renders its content inside a ScrollView", async () => {
@@ -370,31 +420,53 @@ describe("layout", () => {
       </DialogProvider>
     );
 
-    const body = screen.getByTestId("body");
-    expect(body.type).toBe("RCTScrollView");
-    expect(within(body).getByText("Long content")).toBeOnTheScreen();
+    const scrollView = screen.getByTestId("body").children[0] as any;
+    expect(scrollView.type).toBe("RCTScrollView");
+    expect(within(scrollView).getByText("Long content")).toBeOnTheScreen();
   });
 
-  it("DialogBody `scrollable` keeps its vertical padding fixed, outside the scrolling content", async () => {
+  it("DialogBody `scrollable` keeps the body's box styles and props on the body, scrolling only its content", async () => {
+    const onLayout = jest.fn();
+
     await render(
       <DialogProvider
-        customStyles={{ body: { paddingTop: 7, paddingHorizontal: 5 } }}
+        customStyles={{
+          body: {
+            paddingTop: 7,
+            paddingHorizontal: 5,
+            gap: 4,
+            backgroundColor: "pink",
+            marginTop: 8,
+          },
+        }}
       >
         <Dialog>
-          <DialogBody scrollable testID="body" style={{ paddingBottom: 3 }}>
+          <DialogBody
+            scrollable
+            testID="body"
+            onLayout={onLayout}
+            style={{ paddingBottom: 3 }}
+          >
             <Text>Long content</Text>
           </DialogBody>
         </Dialog>
       </DialogProvider>
     );
 
-    const scrollView = screen.getByTestId("body");
-    // the gap stays put, so scrolled content is clipped below the header
-    // instead of sliding right up against it
-    expect(scrollView.parent).toHaveStyle({ paddingTop: 7, paddingBottom: 3 });
+    const body = screen.getByTestId("body");
+    // same box as a plain body; the vertical padding stays put, so scrolled
+    // content is clipped below the header instead of sliding against it
+    expect(body).toHaveStyle({
+      backgroundColor: "pink",
+      marginTop: 8,
+      paddingTop: 7,
+      paddingBottom: 3,
+    });
+    expect(body.props.onLayout).toBe(onLayout);
+
+    const scrollView = body.children[0] as any;
     const content = StyleSheet.flatten(scrollView.props.contentContainerStyle);
-    expect(content.paddingTop).toBeUndefined();
-    expect(content.paddingHorizontal).toBe(5);
+    expect(content).toEqual({ paddingHorizontal: 5, gap: 4 });
   });
 
   it("moves the dialog above the keyboard and shrinks its max height", async () => {
@@ -402,7 +474,9 @@ describe("layout", () => {
 
     await render(
       <DialogProvider>
-        <Dialog testID="dialog" />
+        <Dialog testID="dialog">
+          <DialogBody scrollable />
+        </Dialog>
       </DialogProvider>
     );
 
@@ -428,7 +502,9 @@ describe("layout", () => {
 
     await render(
       <DialogProvider>
-        <Dialog testID="dialog" />
+        <Dialog testID="dialog">
+          <DialogBody scrollable />
+        </Dialog>
       </DialogProvider>
     );
 
@@ -536,6 +612,25 @@ describe("accessibility", () => {
       screen.getByRole("header", { name: "Delete note?" })
     ).toBeOnTheScreen();
     expect(screen.getByRole("button", { name: "Delete" })).toBeOnTheScreen();
+  });
+
+  it("shares one reduce-motion subscription between all dialogs", async () => {
+    // already a mock in the RN preset: drop the calls made by earlier tests
+    const addEventListener = jest.spyOn(AccessibilityInfo, "addEventListener");
+    addEventListener.mockClear();
+
+    await render(
+      <DialogProvider>
+        <Dialog open={false} />
+        <Dialog open={false} />
+        <Dialog open={false} />
+      </DialogProvider>
+    );
+
+    const reduceMotionSubscriptions = addEventListener.mock.calls.filter(
+      ([event]) => (event as string) === "reduceMotionChanged"
+    );
+    expect(reduceMotionSubscriptions).toHaveLength(1);
   });
 
   it("only fades (no slide) when the OS asks to reduce motion", async () => {

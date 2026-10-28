@@ -10,7 +10,9 @@ export type DialogProps = ViewProps & {
     onRequestClose?: () => void;
     /**
      * Called when the backdrop is tapped.
-     * @deprecated Use `onRequestClose`, which also handles the Android back button.
+     * @deprecated Use `onRequestClose`. Kept as its fallback: when `onRequestClose`
+     * isn't set, `onPressOut` handles the backdrop, the Android back button and
+     * the iOS escape gesture.
      */
     onPressOut?: () => Promise<void> | void;
     /** Called once the open animation has finished. */

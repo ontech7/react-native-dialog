@@ -1,4 +1,12 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, {
+  useContext,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import {
   AccessibilityInfo,
   Animated,
@@ -15,6 +23,7 @@ import {
   type ViewProps,
 } from "react-native";
 import { DialogControllerContext } from "./DialogControllerContext";
+import { DialogLayoutContext, type DialogLayout } from "./DialogLayoutContext";
 import { DialogStyleContext, useDialogStyles } from "./theme";
 import { Portal } from "./components/Portal";
 import { ModalStackContext } from "./components/PortalProvider";
@@ -23,8 +32,6 @@ import { ModalStackContext } from "./components/PortalProvider";
 const VERTICAL_MARGIN = 64;
 /** Same, while the keyboard is up: tighter, so a form still fits on small phones. */
 const KEYBOARD_VERTICAL_MARGIN = 16;
-
-let NEXT_DIALOG_ID = 0;
 
 export type DialogProps = ViewProps & {
   open?: boolean;
@@ -36,7 +43,9 @@ export type DialogProps = ViewProps & {
   onRequestClose?: () => void;
   /**
    * Called when the backdrop is tapped.
-   * @deprecated Use `onRequestClose`, which also handles the Android back button.
+   * @deprecated Use `onRequestClose`. Kept as its fallback: when `onRequestClose`
+   * isn't set, `onPressOut` handles the backdrop, the Android back button and
+   * the iOS escape gesture.
    */
   onPressOut?: () => Promise<void> | void;
   /** Called once the open animation has finished. */
@@ -90,7 +99,7 @@ export function Dialog({
   const dialogStyles = useDialogStyles();
   const controller = useContext(DialogControllerContext);
   const modalStack = useContext(ModalStackContext);
-  const dialogId = useRef(String(++NEXT_DIALOG_ID)).current;
+  const dialogId = useId();
   const { width, height } = useWindowDimensions();
   const [mounted, setMounted] = useState(open);
   const reduceMotion = useReduceMotion();
@@ -157,7 +166,8 @@ export function Dialog({
     const subscription = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
-        callbacks.current.onRequestClose?.();
+        const { onRequestClose, onPressOut } = callbacks.current;
+        (onRequestClose ?? onPressOut)?.();
         return true;
       }
     );
@@ -221,11 +231,12 @@ export function Dialog({
   }
 
   // Taps are ignored while the close animation runs, so a double tap can't
-  // trigger an action twice or dismiss twice.
+  // trigger an action twice or dismiss twice. `onPressOut` is only a fallback,
+  // so passing both doesn't close twice.
   const requestClose = open
     ? () => {
-        callbacks.current.onPressOut?.();
-        callbacks.current.onRequestClose?.();
+        const { onRequestClose, onPressOut } = callbacks.current;
+        (onRequestClose ?? onPressOut)?.();
       }
     : undefined;
 
@@ -319,20 +330,15 @@ export function Dialog({
               ]}
               pointerEvents="box-none"
             >
-              <Animated.View
+              <DialogPanel
                 {...props}
                 testID={testID}
                 pointerEvents={open ? pointerEvents : "none"}
-                style={[
-                  styles.dialog,
-                  { maxHeight },
-                  dialogAnimStyle,
-                  dialogStyles.container,
-                  style,
-                ]}
+                maxHeight={maxHeight}
+                style={[dialogAnimStyle, dialogStyles.container, style]}
               >
                 {children}
-              </Animated.View>
+              </DialogPanel>
             </View>
           </View>
         </DialogControllerContext.Provider>
@@ -341,28 +347,89 @@ export function Dialog({
   );
 }
 
+type DialogPanelProps = Omit<ViewProps, "style"> & {
+  maxHeight: number;
+  style: React.ComponentProps<typeof Animated.View>["style"];
+};
+
+/**
+ * The dialog box. Rendered inside the portal, so a scrollable `DialogBody`
+ * can turn the height cap on without a round trip through the portal.
+ */
+function DialogPanel({
+  maxHeight,
+  style,
+  children,
+  ...props
+}: DialogPanelProps) {
+  const [scrollables, setScrollables] = useState(0);
+
+  const layout = useMemo<DialogLayout>(
+    () => ({
+      registerScrollable: () => {
+        setScrollables((count) => count + 1);
+        return () => setScrollables((count) => count - 1);
+      },
+    }),
+    []
+  );
+
+  return (
+    <DialogLayoutContext.Provider value={layout}>
+      <Animated.View
+        {...props}
+        style={[styles.dialog, scrollables > 0 && { maxHeight }, style]}
+      >
+        {children}
+      </Animated.View>
+    </DialogLayoutContext.Provider>
+  );
+}
+
+// One OS subscription shared by every dialog, active while at least one is
+// mounted (a list can render a closed dialog per row).
+const reduceMotionStore = (() => {
+  let reduceMotion = false;
+  let subscription: { remove: () => void } | undefined;
+  const listeners = new Set<() => void>();
+
+  const set = (enabled: boolean) => {
+    if (enabled === reduceMotion) return;
+    reduceMotion = enabled;
+    listeners.forEach((listener) => listener());
+  };
+
+  return {
+    get: () => reduceMotion,
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+
+      if (listeners.size === 1) {
+        AccessibilityInfo.isReduceMotionEnabled()
+          .then(set)
+          .catch(() => {});
+        subscription = AccessibilityInfo.addEventListener(
+          "reduceMotionChanged",
+          set
+        );
+      }
+
+      return () => {
+        listeners.delete(listener);
+        if (listeners.size === 0) {
+          subscription?.remove();
+          subscription = undefined;
+        }
+      };
+    },
+  };
+})();
+
 function useReduceMotion() {
-  const [reduceMotion, setReduceMotion] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-
-    AccessibilityInfo.isReduceMotionEnabled()
-      .then((enabled) => active && setReduceMotion(enabled))
-      .catch(() => {});
-
-    const subscription = AccessibilityInfo.addEventListener(
-      "reduceMotionChanged",
-      setReduceMotion
-    );
-
-    return () => {
-      active = false;
-      subscription?.remove();
-    };
-  }, []);
-
-  return reduceMotion;
+  return useSyncExternalStore(
+    reduceMotionStore.subscribe,
+    reduceMotionStore.get
+  );
 }
 
 /** Height of the software keyboard while `enabled`, 0 otherwise. */

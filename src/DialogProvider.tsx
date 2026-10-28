@@ -40,6 +40,7 @@ export type DialogProviderProps = {
    * show on top of it. Set it to `false` on a nested provider that only scopes
    * styles (e.g. inside a `ScrollView`): its dialogs then render at the parent
    * provider, covering the whole screen. Ignored on the root provider.
+   * Set it once: changing it at runtime remounts everything below the provider.
    */
   host?: boolean;
 };
