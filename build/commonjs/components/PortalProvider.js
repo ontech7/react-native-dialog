@@ -39,13 +39,40 @@ const react_1 = __importStar(require("react"));
 const PortalItem_1 = require("./PortalItem");
 // `null` means "no host above": the root `DialogProvider` creates one.
 exports.PortalContext = (0, react_1.createContext)(null);
-// Only the topmost open dialog should be modal for screen readers: sibling
-// overlays that are all `accessibilityViewIsModal` would hide each other.
+function createModalStack() {
+    let ids = [];
+    const listeners = new Set();
+    const notify = () => listeners.forEach((listener) => listener());
+    return {
+        push: (id) => {
+            ids = [...ids.filter((e) => e !== id), id];
+            notify();
+        },
+        remove: (id) => {
+            ids = ids.filter((e) => e !== id);
+            notify();
+        },
+        subscribe: (listener) => {
+            listeners.add(listener);
+            return () => listeners.delete(listener);
+        },
+        indexOf: (id) => ids.indexOf(id),
+        isTop: (id) => ids[ids.length - 1] === id,
+    };
+}
+// A store rather than state: dialogs read their own position with
+// `useSyncExternalStore`, so opening one doesn't re-render all the others.
 exports.ModalStackContext = (0, react_1.createContext)(null);
 let NEXT_ID = 0;
 const genId = () => String(++NEXT_ID);
 function PortalProvider({ children }) {
     const [entries, setEntries] = (0, react_1.useState)([]);
+    const parentStack = (0, react_1.useContext)(exports.ModalStackContext);
+    const ownStack = (0, react_1.useRef)(null);
+    if (!parentStack && !ownStack.current) {
+        ownStack.current = createModalStack();
+    }
+    const modalStack = parentStack ?? ownStack.current;
     const itemRefs = (0, react_1.useRef)(new Map());
     const addPortal = (0, react_1.useCallback)((node) => {
         const id = genId();
@@ -61,16 +88,8 @@ function PortalProvider({ children }) {
         itemRefs.current.delete(id);
     }, []);
     const ctx = (0, react_1.useMemo)(() => ({ addPortal, updatePortal, removePortal }), [addPortal, updatePortal, removePortal]);
-    const [modalStack, setModalStack] = (0, react_1.useState)([]);
-    const push = (0, react_1.useCallback)((id) => {
-        setModalStack((prev) => [...prev.filter((e) => e !== id), id]);
-    }, []);
-    const remove = (0, react_1.useCallback)((id) => {
-        setModalStack((prev) => prev.filter((e) => e !== id));
-    }, []);
-    const modalCtx = (0, react_1.useMemo)(() => ({ top: modalStack[modalStack.length - 1] ?? null, push, remove }), [modalStack, push, remove]);
     return (react_1.default.createElement(exports.PortalContext.Provider, { value: ctx },
-        react_1.default.createElement(exports.ModalStackContext.Provider, { value: modalCtx },
+        react_1.default.createElement(exports.ModalStackContext.Provider, { value: modalStack },
             children,
             entries.map(({ id, initial }) => {
                 let ref = itemRefs.current.get(id);

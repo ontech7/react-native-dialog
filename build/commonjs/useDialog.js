@@ -70,25 +70,32 @@ function DialogControllerProvider({ children, }) {
     const mounted = (0, react_1.useRef)(true);
     (0, react_1.useEffect)(() => {
         mounted.current = true;
-        // Requests still pending when the provider goes away are cancelled, and
-        // their dialog closed with them: on Fast Refresh / StrictMode re-runs the
-        // provider stays, and a dialog must not stay up with its answer given.
         return () => {
             mounted.current = false;
-            queueRef.current.forEach((request) => request.resolve(false));
-            queueRef.current = [];
-            setQueue([]);
-            setClosing(false);
+            // StrictMode and Fast Refresh re-run this effect right away: cancel the
+            // pending requests only if the provider is really gone.
+            Promise.resolve().then(() => {
+                if (mounted.current)
+                    return;
+                queueRef.current.forEach((request) => request.resolve(false));
+                queueRef.current = [];
+            });
         };
     }, []);
     const enqueue = (0, react_1.useCallback)((kind, options) => new Promise((resolve) => {
-        // e.g. called from a stale closure: settle instead of hanging forever
-        if (!mounted.current) {
-            resolve(false);
-            return;
-        }
         const request = { id: ++NEXT_REQUEST_ID, kind, options, resolve };
+        queueRef.current = [...queueRef.current, request];
         setQueue((prev) => [...prev, request]);
+        // e.g. called from a stale closure after the provider unmounted:
+        // settle instead of hanging forever. Checked later, because during
+        // StrictMode's remount children re-run their effects before this
+        // provider is marked mounted again.
+        if (!mounted.current) {
+            Promise.resolve().then(() => {
+                if (!mounted.current)
+                    resolve(false);
+            });
+        }
     }), []);
     const controller = (0, react_1.useMemo)(() => ({
         alert: (options) => enqueue("alert", options).then(() => undefined),
@@ -112,17 +119,15 @@ function DialogControllerProvider({ children, }) {
         children,
         current && (react_1.default.createElement(ControlledDialog
         // a fresh instance per request, so each one plays its entrance
+        // animation
         , { 
             // a fresh instance per request, so each one plays its entrance
+            // animation
             key: current.id, request: current, open: !closing, onAnswer: answer, onDismiss: handleDismiss }))));
 }
 function ControlledDialog({ request, open, onAnswer, onDismiss, }) {
     const { title, description, confirmLabel, cancelLabel = "Cancel", destructive = false, dismissible = true, dialogProps, } = request.options;
-    // `Dialog` only animates on an `open` change, so mount closed and open on the
-    // next commit to play the entrance animation.
-    const [entered, setEntered] = (0, react_1.useState)(false);
-    (0, react_1.useEffect)(() => setEntered(true), []);
-    return (react_1.default.createElement(Dialog_1.Dialog, { slideFrom: "center", ...dialogProps, open: open && entered, onRequestClose: dismissible ? () => onAnswer(false) : undefined, onDismiss: () => {
+    return (react_1.default.createElement(Dialog_1.Dialog, { slideFrom: "center", ...dialogProps, open: open, onRequestClose: dismissible ? () => onAnswer(false) : undefined, onDismiss: () => {
             dialogProps?.onDismiss?.();
             onDismiss();
         } },

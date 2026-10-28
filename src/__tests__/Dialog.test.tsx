@@ -324,6 +324,24 @@ describe("dismissing", () => {
 });
 
 describe("lifecycle callbacks", () => {
+  it("plays the entrance animation when mounted already open", async () => {
+    jest.useFakeTimers();
+    const onShow = jest.fn();
+
+    await render(
+      <DialogProvider>
+        <Dialog testID="dialog" duration={200} onShow={onShow} />
+      </DialogProvider>
+    );
+    // starts hidden instead of popping in fully visible
+    expect(screen.getByTestId("dialog")).toHaveStyle({ opacity: 0 });
+    expect(onShow).not.toHaveBeenCalled();
+
+    // (the native-driven value isn't re-rendered in tests: check its end)
+    await act(async () => jest.advanceTimersByTime(300));
+    expect(onShow).toHaveBeenCalledTimes(1);
+  });
+
   it("calls onShow after the open animation and onDismiss after the close animation", async () => {
     jest.useFakeTimers();
     const onShow = jest.fn();
@@ -644,9 +662,8 @@ describe("accessibility", () => {
       </DialogProvider>
     );
 
-    expect(screen.getByTestId("dialog")).not.toHaveStyle({
-      transform: [{ translateY: 0 }],
-    });
+    const style = StyleSheet.flatten(screen.getByTestId("dialog").props.style);
+    expect(style.transform).toBeUndefined();
   });
 
   it("slides when reduce motion is off", async () => {
@@ -656,9 +673,54 @@ describe("accessibility", () => {
       </DialogProvider>
     );
 
-    expect(screen.getByTestId("dialog")).toHaveStyle({
-      transform: [{ translateY: 0 }],
-    });
+    const style = StyleSheet.flatten(screen.getByTestId("dialog").props.style);
+    expect(style.transform).toEqual([{ translateY: expect.any(Number) }]);
+  });
+
+  it("keeps only the newest dialog modal across nested hosts", async () => {
+    const ui = (innerOpen: boolean) => (
+      <DialogProvider>
+        <Dialog animation={false}>
+          <Text>Outer</Text>
+        </Dialog>
+        <View>
+          <DialogProvider>
+            <Dialog open={innerOpen} animation={false}>
+              <Text>Inner</Text>
+            </Dialog>
+          </DialogProvider>
+        </View>
+      </DialogProvider>
+    );
+
+    await render(ui(false));
+    await screen.rerender(ui(true));
+
+    expect(screen.getByText("Inner")).toBeOnTheScreen();
+  });
+});
+
+describe("stacking", () => {
+  const overlayZIndex = (testID: string) =>
+    StyleSheet.flatten(
+      screen.getByTestId(`${testID}-backdrop`, { includeHiddenElements: true })
+        .parent!.props.style
+    ).zIndex;
+
+  it("draws a dialog reopened during its close animation above the ones opened meanwhile", async () => {
+    const ui = (a: boolean, b: boolean) => (
+      <DialogProvider>
+        <Dialog testID="a" open={a} />
+        <Dialog testID="b" open={b} />
+      </DialogProvider>
+    );
+
+    await render(ui(true, false));
+    await screen.rerender(ui(false, false)); // A starts closing, still mounted
+    await screen.rerender(ui(false, true)); // B opens on top
+    await screen.rerender(ui(true, true)); // A reopens: now the newest
+
+    expect(overlayZIndex("a")).toBeGreaterThan(overlayZIndex("b"));
   });
 });
 
@@ -705,6 +767,15 @@ describe("portal host", () => {
       within(section).queryByText("Nested", { includeHiddenElements: true })
     ).toBeNull();
     expect(screen.getByText("Nested")).toHaveStyle({ color: "red" });
+  });
+
+  it("leaves the back button alone when nothing is shown (no DialogProvider)", async () => {
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+    const back = captureListeners(BackHandler, "addEventListener");
+
+    await render(<Dialog />);
+
+    expect(back.isActive("hardwareBackPress")).toBe(false);
   });
 
   it("warns instead of failing silently without a DialogProvider", async () => {

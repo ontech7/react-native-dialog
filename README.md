@@ -10,7 +10,7 @@ Simple and lightweight dialog component for React Native, structure similar to s
 
 **Features**:
 
-- Compatible with Expo SDK >= 49 and bare projects, no native code
+- Compatible with Expo SDK >= 49 and bare projects (React 18+, React Native 0.71+), no native code
 - `shadcn/ui` approach, with fully customizable components
 - Possibility to change global styles from the `DialogProvider`
 - Light & dark mode theming, with built-in `shadcnStyle` and `materialStyle` presets
@@ -171,6 +171,8 @@ export default function RootLayout() {
 
 > [!IMPORTANT]
 > Mount the root `DialogProvider` at a **full-screen root** (your `App.tsx` / root `_layout.tsx`). The dialog overlay is rendered in-tree relative to the provider that hosts it, so its parent must fill the screen and must not be transformed or clipped (`overflow: "hidden"`). On React Native's New Architecture (RN 0.85+ / Expo SDK 56) a parent that collapses to zero size will make the backdrop disappear. For nested providers that only scope styles, use `host={false}` (see [Nested providers](#nested-providers)).
+>
+> An open dialog is modal for screen readers over the content of the provider that hosts it, so wrap your navigator with the root provider: headers and tab bars rendered outside it stay reachable by VoiceOver.
 
 ```jsx
 // Component.tsx

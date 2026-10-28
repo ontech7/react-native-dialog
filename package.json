@@ -33,8 +33,8 @@
   "author": "Andrea Losavio (github.com/ontech7)",
   "license": "BSD-3-Clause",
   "peerDependencies": {
-    "react": "*",
-    "react-native": "*"
+    "react": ">=18.0.0",
+    "react-native": ">=0.71.0"
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",

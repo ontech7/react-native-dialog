@@ -48,13 +48,16 @@ const KEYBOARD_VERTICAL_MARGIN = 16;
 function Dialog({ open = true, onRequestClose, onPressOut, onShow, onDismiss, avoidKeyboard = true, tint = "dark", animation = true, duration = 200, delay = 0, slideFrom = "none", BlurComponent, blurProps, overlayColor, style, children, testID, pointerEvents, ...props }) {
     const dialogStyles = (0, theme_1.useDialogStyles)();
     const controller = (0, react_1.useContext)(DialogControllerContext_1.DialogControllerContext);
+    const host = (0, react_1.useContext)(PortalProvider_1.PortalContext);
     const modalStack = (0, react_1.useContext)(PortalProvider_1.ModalStackContext);
     const dialogId = (0, react_1.useId)();
     const { width, height } = (0, react_native_1.useWindowDimensions)();
     const [mounted, setMounted] = (0, react_1.useState)(open);
     const reduceMotion = useReduceMotion();
     const keyboardHeight = useKeyboardHeight(avoidKeyboard && mounted);
-    const progress = (0, react_1.useRef)(new react_native_1.Animated.Value(open ? 1 : 0)).current;
+    // Starts hidden even when mounted open (`{visible && <Dialog />}`), so the
+    // entrance animation plays on mount too.
+    const progress = (0, react_1.useRef)(new react_native_1.Animated.Value(0)).current;
     // Latest callbacks, so effects don't re-run (or re-register the back
     // handler, losing its priority) when inline functions change every render.
     const callbacks = (0, react_1.useRef)({ onRequestClose, onPressOut, onShow, onDismiss });
@@ -62,6 +65,11 @@ function Dialog({ open = true, onRequestClose, onPressOut, onShow, onDismiss, av
         callbacks.current = { onRequestClose, onPressOut, onShow, onDismiss };
     });
     const wasOpen = (0, react_1.useRef)(open);
+    // `onPressOut` is only a fallback, so passing both doesn't close twice.
+    const dismiss = () => {
+        const { onRequestClose, onPressOut } = callbacks.current;
+        (onRequestClose ?? onPressOut)?.();
+    };
     (0, react_1.useEffect)(() => {
         const closing = wasOpen.current && !open;
         wasOpen.current = open;
@@ -104,28 +112,28 @@ function Dialog({ open = true, onRequestClose, onPressOut, onShow, onDismiss, av
         }
     }, [open]);
     (0, react_1.useEffect)(() => {
-        if (!open)
+        // Without a host nothing is shown, so the press must go through.
+        if (!open || !host)
             return;
         // Registered once per opening, last = called first, so the topmost dialog
         // handles the press. Always consumed: an open dialog is modal, so the
         // press must not reach (and e.g. pop) the screen behind it, even when the
         // dialog can't be dismissed.
         const subscription = react_native_1.BackHandler.addEventListener("hardwareBackPress", () => {
-            const { onRequestClose, onPressOut } = callbacks.current;
-            (onRequestClose ?? onPressOut)?.();
+            dismiss();
             return true;
         });
         return () => subscription.remove();
-    }, [open]);
-    const pushModal = modalStack?.push;
-    const removeModal = modalStack?.remove;
+    }, [open, host]);
     (0, react_1.useEffect)(() => {
-        if (!open || !pushModal || !removeModal)
+        if (!open || !modalStack)
             return;
-        pushModal(dialogId);
-        return () => removeModal(dialogId);
-    }, [open, pushModal, removeModal]);
-    const isTopmost = !modalStack || modalStack.top === dialogId;
+        modalStack.push(dialogId);
+        return () => modalStack.remove(dialogId);
+    }, [open, modalStack]);
+    const subscribe = modalStack?.subscribe ?? subscribeToNothing;
+    const stackIndex = (0, react_1.useSyncExternalStore)(subscribe, () => modalStack ? modalStack.indexOf(dialogId) : 0);
+    const isTopmost = (0, react_1.useSyncExternalStore)(subscribe, () => modalStack ? modalStack.isTop(dialogId) : true);
     const dialogAnimStyle = (() => {
         if (!animation) {
             return { opacity: open ? 1 : 0 };
@@ -161,14 +169,8 @@ function Dialog({ open = true, onRequestClose, onPressOut, onShow, onDismiss, av
         return null;
     }
     // Taps are ignored while the close animation runs, so a double tap can't
-    // trigger an action twice or dismiss twice. `onPressOut` is only a fallback,
-    // so passing both doesn't close twice.
-    const requestClose = open
-        ? () => {
-            const { onRequestClose, onPressOut } = callbacks.current;
-            (onRequestClose ?? onPressOut)?.();
-        }
-        : undefined;
+    // trigger an action twice or dismiss twice.
+    const requestClose = open ? dismiss : undefined;
     // Scrim painted over the backdrop (and over the blur, if any). With a blur the
     // default is a lighter veil so the blur stays visible, but still dark/light
     // enough to set the dialog apart. Override with `overlayColor` for full control.
@@ -199,7 +201,11 @@ function Dialog({ open = true, onRequestClose, onPressOut, onShow, onDismiss, av
     return (react_1.default.createElement(Portal_1.Portal, null,
         react_1.default.createElement(theme_1.DialogStyleContext.Provider, { value: dialogStyles },
             react_1.default.createElement(DialogControllerContext_1.DialogControllerContext.Provider, { value: controller },
-                react_1.default.createElement(react_native_1.View, { style: [overlay, styles.overlay], accessibilityViewIsModal: isTopmost, onAccessibilityEscape: requestClose },
+                react_1.default.createElement(react_native_1.View
+                // layered in opening order; a closing dialog (-1) goes below
+                , { 
+                    // layered in opening order; a closing dialog (-1) goes below
+                    style: [overlay, { zIndex: 1001 + stackIndex }], accessibilityViewIsModal: isTopmost, onAccessibilityEscape: requestClose },
                     react_1.default.createElement(react_native_1.Animated.View, { style: [react_native_1.StyleSheet.absoluteFill, { opacity: progress }], pointerEvents: "none" },
                         react_1.default.createElement(BlurComp
                         /* expo-blur */
@@ -319,10 +325,8 @@ function useKeyboardHeight(enabled) {
     }, [enabled]);
     return keyboardHeight;
 }
+const subscribeToNothing = () => () => { };
 const styles = react_native_1.StyleSheet.create({
-    overlay: {
-        zIndex: 1000,
-    },
     center: {
         justifyContent: "center",
         alignItems: "center",

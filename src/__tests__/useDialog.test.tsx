@@ -264,6 +264,32 @@ describe("useDialog", () => {
     await expect(dialog.confirm({ title: "Too late" })).resolves.toBe(false);
   });
 
+  it("does not cancel requests on StrictMode's simulated unmount", async () => {
+    // React Native's own Animated warns about findNodeHandle in StrictMode
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    const settled = jest.fn();
+
+    function AskOnMount() {
+      const dialog = useDialog();
+      React.useEffect(() => {
+        dialog.confirm({ title: "Asked on mount" }).then(settled);
+      }, []);
+      return null;
+    }
+
+    await render(
+      <React.StrictMode>
+        <DialogProvider>
+          <AskOnMount />
+        </DialogProvider>
+      </React.StrictMode>
+    );
+    await act(async () => {});
+
+    expect(settled).not.toHaveBeenCalled();
+    expect(screen.getByText("Asked on mount")).toBeOnTheScreen();
+  });
+
   it("throws a helpful error outside a DialogProvider", async () => {
     jest.spyOn(console, "error").mockImplementation(() => {});
 

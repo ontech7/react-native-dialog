@@ -9,6 +9,7 @@
 - Nested `DialogProvider`s inside a sized or scrolling view (e.g. a `ScrollView`) drew the overlay relative to that view instead of the screen: pass the new `host={false}` to make them only scope styles, their dialogs then render at the parent provider. Without it, nested providers keep hosting their own dialogs as before (needed inside a `Modal`)
 - `useDialog()` and the styles of the declaring provider are available to components rendered inside a `Dialog`
 - A `Dialog` rendered outside a `DialogProvider` now logs a warning in development instead of silently rendering nothing
+- A `Dialog` mounted already open (e.g. `{visible && <Dialog />}`) now plays its entrance animation instead of popping in
 - `colorScheme` accepts `null` / `"unspecified"` (what `useColorScheme()` can return) and falls back to light
 - `DialogAction` `style`, `textStyle`, and `DialogInput` `wrapperStyle` / `labelStyle` accept style arrays (`StyleProp`)
 - `DialogFooter` wraps its actions when they don't fit on one line, and long labels wrap inside their button
@@ -23,7 +24,7 @@
 - `extendDialogTheme(base, overrides)`: deep-merge overrides into a preset (or your own styles), for both schemes or per scheme
 - `onShow` / `onDismiss` on `Dialog`, called when the open / close animation finishes
 - Dialogs move above the software keyboard (`avoidKeyboard`, default `true`)
-- Accessibility: the topmost open dialog is modal for screen readers, `DialogTitle` has the header role, `DialogAction` the button role (disabled actions are dimmed and reported as disabled), `DialogInput` uses its `label` as accessible name, and slide/scale animations become a plain fade when the OS asks to reduce motion
+- Accessibility: the topmost open dialog (across all providers) is modal for screen readers, and open dialogs are layered in the order they opened; `DialogTitle` has the header role, `DialogAction` the button role (disabled actions are dimmed and reported as disabled), `DialogInput` uses its `label` as accessible name, and slide/scale animations become a plain fade when the OS asks to reduce motion
 - `` `${testID}-backdrop` `` test ID on the backdrop when the dialog has a `testID`
 - New exported types: `DialogActionVariant`, `DialogActionStyle`, `DialogController`, `DialogAlertOptions`, `DialogConfirmOptions`
 
@@ -39,6 +40,7 @@
 ### Package
 
 - Ships a CommonJS build (`build/commonjs`, used as `main`) next to the ES module build (`build/module`, used as `module`), so Jest loads it with the default React Native preset, without `transformIgnorePatterns`. Types are in `build/module`. If you deep-imported files from `build/`, update the paths
+- `peerDependencies` now require React >= 18 and React Native >= 0.71 (they were `*`; the code uses React 18 APIs such as `useId` and `useSyncExternalStore`)
 - Added a test suite (Jest + React Native Testing Library) and CI
 
 ## v1.3.0
