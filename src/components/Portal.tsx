@@ -6,21 +6,30 @@ type PortalProps = {
 };
 
 export function Portal({ children }: PortalProps) {
-  const { addPortal, updatePortal, removePortal } = useContext(PortalContext);
+  const host = useContext(PortalContext);
 
   const idRef = useRef<string | null>(null);
 
   useEffect(() => {
-    idRef.current = addPortal(children);
+    if (!host) {
+      if (__DEV__) {
+        console.warn(
+          "[react-native-dialog] <Dialog> must be rendered inside a <DialogProvider>; nothing will be shown."
+        );
+      }
+      return;
+    }
+
+    idRef.current = host.addPortal(children);
 
     return () => {
-      if (idRef.current) removePortal(idRef.current);
+      if (idRef.current) host.removePortal(idRef.current);
     };
   }, []);
 
   useEffect(() => {
-    if (idRef.current) updatePortal(idRef.current, children);
-  }, [children, updatePortal]);
+    if (idRef.current) host?.updatePortal(idRef.current, children);
+  }, [children, host]);
 
   return null;
 }

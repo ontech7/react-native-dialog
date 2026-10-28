@@ -73,7 +73,7 @@ export function ShadcnDialog({
         </Text>
       </TouchableOpacity>
 
-      <Dialog open={open} {...props}>
+      <Dialog open={open} onRequestClose={handleClose} {...props}>
         <DialogHeader>
           <DialogTitle>Edit username</DialogTitle>
           <DialogDescription>
@@ -93,8 +93,12 @@ export function ShadcnDialog({
           />
         </DialogBody>
         <DialogFooter>
-          <DialogAction onPress={handleClose}>Cancel</DialogAction>
-          <DialogAction onPress={handleConfirm}>Save changes</DialogAction>
+          <DialogAction variant="secondary" onPress={handleClose}>
+            Cancel
+          </DialogAction>
+          <DialogAction variant="primary" onPress={handleConfirm}>
+            Save changes
+          </DialogAction>
         </DialogFooter>
       </Dialog>
     </>

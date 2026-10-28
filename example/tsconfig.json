@@ -5,6 +5,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@ontech7/react-native-dialog": [
+        "../src"
       ]
     }
   },

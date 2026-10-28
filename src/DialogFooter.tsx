@@ -2,7 +2,7 @@ import React from "react";
 
 import type { ViewProps } from "react-native";
 import { StyleSheet, View } from "react-native";
-import { useDialogStyles } from "./DialogProvider";
+import { useDialogStyles } from "./theme";
 
 export type DialogFooterProps = ViewProps;
 
@@ -21,6 +21,7 @@ const styles = StyleSheet.create({
     padding: 18,
     gap: 6,
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "flex-end",
     alignItems: "center",
   },

@@ -1,3 +1,47 @@
+## v1.4.0
+
+### Fixes
+
+- `DialogTitle` and `DialogDescription` now apply their `style` prop (it was ignored); on `DialogTitle` it goes to the text
+- Tapping non-touchable content inside the dialog (title, description, text in the body) no longer triggers `onPressOut`: the backdrop is now a separate layer behind the dialog
+- Backdrop taps and action presses are ignored while the close animation runs, so a double tap can't fire an action (or close) twice
+- Long content no longer has to push the footer off screen: the dialog is capped to the window height, and `<DialogBody scrollable>` (see below) scrolls inside it
+- Nested `DialogProvider`s inside a sized or scrolling view (e.g. a `ScrollView`) drew the overlay relative to that view instead of the screen: pass the new `host={false}` to make them only scope styles, their dialogs then render at the parent provider. Without it, nested providers keep hosting their own dialogs as before (needed inside a `Modal`)
+- `useDialog()` and the styles of the declaring provider are available to components rendered inside a `Dialog`
+- A `Dialog` rendered outside a `DialogProvider` now logs a warning in development instead of silently rendering nothing
+- `colorScheme` accepts `null` / `"unspecified"` (what `useColorScheme()` can return) and falls back to light
+- `DialogAction` `style`, `textStyle`, and `DialogInput` `wrapperStyle` / `labelStyle` accept style arrays (`StyleProp`)
+- `DialogFooter` wraps its actions when they don't fit on one line, and long labels wrap inside their button
+
+### New
+
+- `onRequestClose` on `Dialog`: called on backdrop tap, the Android back button (topmost dialog first) and the iOS accessibility escape gesture. `onPressOut` is deprecated in its favour
+- `host` on `DialogProvider` (default `true`): `false` makes a nested provider only scope styles
+- `<DialogBody scrollable>`: the body scrolls while the header and footer stay visible (`scrollViewProps` to configure the `ScrollView`)
+- `variant` on `DialogAction`: `primary`, `secondary`, `destructive`, themed through `action.variants` in the provider styles, with a built-in fallback for themes that don't define them. Both presets define all three
+- `useDialog()`: promise-based, themed `confirm()` / `alert()` dialogs, queued per provider
+- `extendDialogTheme(base, overrides)`: deep-merge overrides into a preset (or your own styles), for both schemes or per scheme
+- `onShow` / `onDismiss` on `Dialog`, called when the open / close animation finishes
+- Dialogs move above the software keyboard (`avoidKeyboard`, default `true`)
+- Accessibility: the topmost open dialog is modal for screen readers, `DialogTitle` has the header role, `DialogAction` the button role (disabled actions are dimmed and reported as disabled), `DialogInput` uses its `label` as accessible name, and slide/scale animations become a plain fade when the OS asks to reduce motion
+- `` `${testID}-backdrop` `` test ID on the backdrop when the dialog has a `testID`
+- New exported types: `DialogActionVariant`, `DialogActionStyle`, `DialogController`, `DialogAlertOptions`, `DialogConfirmOptions`
+
+### Behavior changes
+
+- While a dialog is open, the Android back button no longer reaches the screen behind it (it used to navigate back, or close the app, leaving the dialog open). With `onRequestClose` it closes the dialog; without it, it does nothing, like React Native's `Modal`
+- The dialog is capped to the window height (64pt margins, 16pt while the keyboard is up). Content taller than that needs `<DialogBody scrollable>`: a plain body doesn't shrink, so it overflows the dialog's box (in 1.3.0 it ran off screen)
+
+### Presets
+
+- `shadcnStyle`: buttons are now `h-9 px-4` (36pt high) like shadcn/ui; new `primary` (filled), `secondary` (outline) and `destructive` variants; sections are 16pt apart in every combination: header + footer dialogs (e.g. a confirm) are no longer cramped, and dialogs without a header or a footer keep their spacing
+- `materialStyle`: buttons are 40dp high; new `primary` (filled), `secondary` (outlined) and `destructive` (filled, error color) variants
+
+### Package
+
+- Ships a CommonJS build (`build/commonjs`, used as `main`) next to the ES module build (`build/module`, used as `module`), so Jest loads it with the default React Native preset, without `transformIgnorePatterns`. Types are in `build/module`. If you deep-imported files from `build/`, update the paths
+- Added a test suite (Jest + React Native Testing Library) and CI
+
 ## v1.3.0
 
 - Add dark-mode support to `DialogProvider`: `customStyles` now also accepts a `{ light, dark }` theme, plus new `darkStyles` and `colorScheme` props. `colorScheme` defaults to `light` — drive it from `useColorScheme()` or your in-app theme toggle to enable dark

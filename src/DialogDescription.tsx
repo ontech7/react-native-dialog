@@ -2,7 +2,7 @@ import React from "react";
 
 import type { TextProps } from "react-native";
 import { StyleSheet, Text } from "react-native";
-import { useDialogStyles } from "./DialogProvider";
+import { useDialogStyles } from "./theme";
 
 export type DialogDescriptionProps = TextProps;
 
@@ -14,7 +14,7 @@ export function DialogDescription({
   const { description } = useDialogStyles();
 
   return (
-    <Text {...props} style={[styles.text, description]}>
+    <Text {...props} style={[styles.text, description, style]}>
       {children}
     </Text>
   );

@@ -66,7 +66,7 @@ export function InputDialog({
         </Text>
       </TouchableOpacity>
 
-      <Dialog open={open} {...props}>
+      <Dialog open={open} onRequestClose={handleClose} {...props}>
         <DialogHeader>
           <DialogTitle
             adornmentStart={

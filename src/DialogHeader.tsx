@@ -2,7 +2,7 @@ import React from "react";
 
 import type { ViewProps } from "react-native";
 import { StyleSheet, View } from "react-native";
-import { useDialogStyles } from "./DialogProvider";
+import { useDialogStyles } from "./theme";
 
 export type DialogHeaderProps = ViewProps;
 

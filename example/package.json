@@ -10,7 +10,7 @@
     "lint": "expo lint"
   },
   "dependencies": {
-    "@ontech7/react-native-dialog": "file:../",
+    "@ontech7/react-native-dialog": "link:../",
     "expo": "^56.0.0",
     "expo-blur": "~56.0.3",
     "expo-constants": "~56.0.16",

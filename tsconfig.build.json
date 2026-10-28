@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "noEmitOnError": true,
+    "declaration": true,
+    "outDir": "build/module",
+    "types": []
+  },
+  "exclude": ["node_modules", "src/**/__tests__"]
+}

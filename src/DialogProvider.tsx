@@ -1,64 +1,22 @@
-import React, { createContext, useContext } from "react";
+import React, { useContext, useMemo } from "react";
 
-import type { TextStyle, ViewStyle } from "react-native";
-import { PortalProvider } from "./components/PortalProvider";
+import { PortalContext, PortalProvider } from "./components/PortalProvider";
+import {
+  defaultDialogStyles,
+  DialogStyleContext,
+  isTheme,
+  type DialogStyleConfig,
+  type DialogStyleTheme,
+} from "./theme";
+import { DialogControllerProvider } from "./useDialog";
 
-export type DialogStyleConfig = {
-  container?: ViewStyle;
-  header?: ViewStyle;
-  body?: ViewStyle;
-  footer?: ViewStyle;
-  title?: TextStyle;
-  description?: TextStyle;
-  input?: {
-    wrapper?: ViewStyle;
-    label?: TextStyle;
-    textInput?: TextStyle;
-  };
-  action?: {
-    button?: ViewStyle;
-    text?: TextStyle;
-  };
-};
-
-/**
- * A light/dark pair of styles. Pass it to `DialogProvider` (via `customStyles`)
- * and the active variant is chosen from the device color scheme (or the
- * `colorScheme` override). `dark` falls back to `light` when omitted.
- */
-export type DialogStyleTheme = {
-  light: DialogStyleConfig;
-  dark?: DialogStyleConfig;
-};
-
-function isTheme(
-  styles: DialogStyleConfig | DialogStyleTheme | undefined
-): styles is DialogStyleTheme {
-  return !!styles && ("light" in styles || "dark" in styles);
-}
-
-const defaultDialogStyles: DialogStyleConfig = {
-  container: {},
-  header: {},
-  body: {},
-  footer: {},
-  title: {},
-  description: {},
-  input: {
-    wrapper: {},
-    textInput: {},
-    label: {},
-  },
-  action: {
-    button: {},
-    text: {},
-  },
-};
-
-const DialogStyleContext =
-  createContext<DialogStyleConfig>(defaultDialogStyles);
-
-export const useDialogStyles = () => useContext(DialogStyleContext);
+export {
+  useDialogStyles,
+  type DialogActionStyle,
+  type DialogActionVariant,
+  type DialogStyleConfig,
+  type DialogStyleTheme,
+} from "./theme";
 
 export type DialogProviderProps = {
   children: React.ReactNode;
@@ -73,31 +31,53 @@ export type DialogProviderProps = {
   /**
    * Active color scheme. Defaults to `"light"` when omitted — pass the device
    * scheme yourself (e.g. from `useColorScheme()`) or your in-app theme value
-   * to enable dark mode.
+   * to enable dark mode. Anything other than `"dark"` selects the light styles.
    */
-  colorScheme?: "light" | "dark";
+  colorScheme?: "light" | "dark" | "unspecified" | null;
+  /**
+   * Whether the dialogs below this provider render here (default: `true`).
+   * Keep it for a provider inside a `Modal` or a modal screen, so its dialogs
+   * show on top of it. Set it to `false` on a nested provider that only scopes
+   * styles (e.g. inside a `ScrollView`): its dialogs then render at the parent
+   * provider, covering the whole screen. Ignored on the root provider.
+   */
+  host?: boolean;
 };
 
+/**
+ * Put one at your app root (full screen). Nest more to scope styles, or inside
+ * a `Modal` to show dialogs on top of it.
+ */
 export function DialogProvider({
   children,
   customStyles,
   darkStyles,
   colorScheme,
+  host = true,
 }: DialogProviderProps) {
-  const scheme = colorScheme ?? "light";
+  const hasParentHost = useContext(PortalContext) !== null;
+  const scheme = colorScheme === "dark" ? "dark" : "light";
 
-  const light = isTheme(customStyles) ? customStyles.light : customStyles;
-  const dark = isTheme(customStyles)
-    ? (customStyles.dark ?? darkStyles)
-    : darkStyles;
+  const value = useMemo(() => {
+    const light = isTheme(customStyles) ? customStyles.light : customStyles;
+    const dark = isTheme(customStyles)
+      ? (customStyles.dark ?? darkStyles)
+      : darkStyles;
 
-  const active = scheme === "dark" ? (dark ?? light) : light;
+    const active = scheme === "dark" ? (dark ?? light) : light;
 
-  return (
-    <DialogStyleContext.Provider
-      value={{ ...defaultDialogStyles, ...active }}
-    >
-      <PortalProvider>{children}</PortalProvider>
+    return { ...defaultDialogStyles, ...active };
+  }, [customStyles, darkStyles, scheme]);
+
+  const content = (
+    <DialogStyleContext.Provider value={value}>
+      <DialogControllerProvider>{children}</DialogControllerProvider>
     </DialogStyleContext.Provider>
+  );
+
+  return host || !hasParentHost ? (
+    <PortalProvider>{content}</PortalProvider>
+  ) : (
+    content
   );
 }
