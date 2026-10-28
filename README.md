@@ -14,6 +14,7 @@ Simple and lightweight dialog component for React Native, structure similar to s
 - `shadcn/ui` approach, with fully customizable components
 - Possibility to change global styles from the `DialogProvider`
 - Light & dark mode theming, with built-in `shadcnStyle` and `materialStyle` presets
+- Tweak a preset without copying it, with `extendDialogTheme`
 - Portalized popup/dialog
 - Closes on backdrop tap, Android back button and the iOS escape gesture (`onRequestClose`)
 - Scrollable body for long content, with the header and footer always visible
@@ -33,15 +34,19 @@ Simple and lightweight dialog component for React Native, structure similar to s
 | ![default](https://github.com/user-attachments/assets/c9dec9c0-7bb1-4cae-9e3a-94fcc9f17116) | ![slide](https://github.com/user-attachments/assets/0f1f8ef3-9b9b-4bb7-a94f-80919d82354f)  |
 | **Input**                                                                                   | **Global Custom Styles**                                                                   |
 | ![input](https://github.com/user-attachments/assets/f16b4a23-bc10-4bfd-81e7-09cbdee20226)   | ![custom](https://github.com/user-attachments/assets/d282916b-3db6-4ea6-a2dc-6d1cf7078d2c) |
+| **Scrollable body** ([Long content](#long-content))                                         | **`useDialog().confirm()`** ([Imperative dialogs](#imperative-dialogs-usedialog))          |
+| <img src="https://raw.githubusercontent.com/ontech7/react-native-dialog/main/docs/images/scrollable.jpg" alt="scrollable" width="320" /> | <img src="https://raw.githubusercontent.com/ontech7/react-native-dialog/main/docs/images/use-dialog-confirm.jpg" alt="useDialog confirm" width="320" /> |
 
 ## Custom themes / styles
+
+Two presets ship out of the box, each as a `{ light, dark }` theme (see [Dark mode](#dark-mode)), with `primary`, `secondary` and `destructive` [action variants](#action-variants):
 
 <table>
 <tr>
 <td> Style </td> <td> Code </td>
 </tr>
 <tr>
-<td> <a href="https://ui.shadcn.com/" target="_blank"><b>Shadcn/ui</b></a> <br /><br /> <img src="https://github.com/user-attachments/assets/3540789d-1f61-41cc-825b-a7d5ae9467f7" style="width: 320px; height: auto" /> </td>
+<td> <a href="https://ui.shadcn.com/" target="_blank"><b>Shadcn/ui</b></a> <br /><br /> <img src="https://raw.githubusercontent.com/ontech7/react-native-dialog/main/docs/images/shadcn-light.jpg" alt="shadcnStyle" width="320" /> </td>
 <td>
 
 ```jsx
@@ -61,9 +66,30 @@ export default function RootLayout() {
 
 </td>
 </tr>
+<tr>
+<td> <a href="https://m3.material.io/components/dialogs" target="_blank"><b>Material Design 3</b></a> <br /><br /> <img src="https://raw.githubusercontent.com/ontech7/react-native-dialog/main/docs/images/material-light.jpg" alt="materialStyle" width="320" /> </td>
+<td>
+
+```jsx
+import {
+  DialogProvider,
+  materialStyle
+} from "@ontech7/react-native-dialog";
+
+export default function RootLayout() {
+  return (
+    <DialogProvider customStyles={materialStyle}>
+      {/* ... rest of the code here ... */}
+    </DialogProvider>
+  )
+}
+```
+
+</td>
+</tr>
 </table>
 
-Two presets ship out of the box, each as a `{ light, dark }` theme: **`shadcnStyle`** (matches the shadcn/ui `Dialog`) and **`materialStyle`** (Material Design 3).
+Both screenshots use the same dialog, with `variant="secondary"` on "Cancel" and `variant="primary"` on "Save changes". You can also pass your own `DialogStyleConfig` (see [DialogStyleConfig](#dialogstyleconfig)), or start from a preset with `extendDialogTheme`.
 
 ### Tweaking a preset
 
@@ -132,6 +158,10 @@ const scheme = useColorScheme(); // "light" | "dark" | null
 </DialogProvider>;
 ```
 
+| `shadcnStyle`, dark                                                                                                                       | `materialStyle`, dark                                                                                                                         |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| <img src="https://raw.githubusercontent.com/ontech7/react-native-dialog/main/docs/images/shadcn-dark.jpg" alt="shadcnStyle dark" width="320" /> | <img src="https://raw.githubusercontent.com/ontech7/react-native-dialog/main/docs/images/material-dark.jpg" alt="materialStyle dark" width="320" /> |
+
 Without `colorScheme` (or with anything other than `"dark"`), the light variant is used. You can also define your own styles, either as a theme or via the separate `darkStyles` prop:
 
 ```jsx
@@ -154,7 +184,7 @@ $ npm install @ontech7/react-native-dialog
 $ pnpm add @ontech7/react-native-dialog
 ```
 
-You need to import the `DialogProvider` and put it in your App.js or root \_layout.tsx component.
+You need to import the `DialogProvider` and put it in your App.js or root \_layout.tsx component. A `Dialog` rendered outside a `DialogProvider` renders nothing (and logs a warning in development).
 
 ```jsx
 // _layout.tsx
@@ -301,6 +331,13 @@ function DeleteButton({ onDelete }) {
 
 Dialogs move up when the software keyboard opens, so inputs and actions stay visible. For long forms on small phones, make the body `scrollable` so the dialog fits above the keyboard. Disable it with `avoidKeyboard={false}`.
 
+### Accessibility
+
+- The topmost open dialog is modal for screen readers (VoiceOver / TalkBack don't reach the content behind it), also when dialogs from different providers are open at the same time. Open dialogs are layered in the order they opened.
+- The iOS accessibility escape gesture (VoiceOver two-finger scrub) calls `onRequestClose`, like the backdrop and the Android back button.
+- `DialogTitle` has the header role and `DialogAction` the button role; a `disabled` action is dimmed and reported as disabled. `DialogInput` uses its `label` as accessible name.
+- When the OS asks to reduce motion, slide and scale animations become a plain fade.
+
 ### Testing with Jest
 
 The package ships a CommonJS build next to the ES module one, so Jest can load it with the default React Native preset: no `transformIgnorePatterns` entry needed. Give your dialog a `testID` and its backdrop gets `` `${testID}-backdrop` ``:
@@ -308,6 +345,19 @@ The package ships a CommonJS build next to the ES module one, so Jest can load i
 ```jsx
 await fireEvent.press(screen.getByTestId("my-dialog-backdrop"));
 ```
+
+## Upgrading from 1.3
+
+Nothing was removed from the API, but a few things behave differently:
+
+- **`onPressOut` is deprecated**: rename it to `onRequestClose`. It keeps working as a fallback, and now it's also called for the Android back button and the iOS escape gesture. Taps on the dialog's own content no longer call it.
+- **Android back button**: while a dialog is open, it no longer reaches the screen behind it (it used to navigate back, or close the app, leaving the dialog open). It closes the dialog through `onRequestClose`, and does nothing without it.
+- **Nested providers** inside a `ScrollView` or a sized view drew the overlay inside that view: add `host={false}` to them (see [Nested providers](#nested-providers)).
+- **Presets**: actions without a `variant` keep the plain look. Add `variant="primary"` / `"secondary"` / `"destructive"` to get the filled, outlined and error buttons shown above. `shadcnStyle` buttons are now 36pt high, `materialStyle` ones 40dp.
+- **Peer dependencies**: React >= 18 and React Native >= 0.71.
+- **Package layout**: the build moved to `build/module` (ES modules + types) and `build/commonjs`. Import from `@ontech7/react-native-dialog`, not from files inside `build/`.
+
+See the [changelog](CHANGELOG.md) for the full list.
 
 ## Blur Component
 
@@ -458,6 +508,10 @@ type DialogStyleConfig = {
   };
 };
 ```
+
+### Types
+
+Besides the props of each component (`DialogProps`, `DialogActionProps`, `DialogBodyProps`, …), the package exports `DialogStyleConfig`, `DialogStyleTheme` (`{ light, dark }`), `DialogActionStyle`, `DialogActionVariant`, `DialogController` (what `useDialog()` returns), `DialogConfirmOptions` and `DialogAlertOptions`.
 
 ---
 
