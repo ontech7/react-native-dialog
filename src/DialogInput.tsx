@@ -1,13 +1,18 @@
 import React from "react";
 
-import type { TextInputProps, TextStyle, ViewStyle } from "react-native";
+import type {
+  StyleProp,
+  TextInputProps,
+  TextStyle,
+  ViewStyle,
+} from "react-native";
 import { StyleSheet, Text, TextInput, View } from "react-native";
-import { useDialogStyles } from "./DialogProvider";
+import { useDialogStyles } from "./theme";
 
 export type DialogInputProps = TextInputProps & {
   label?: string;
-  wrapperStyle?: ViewStyle;
-  labelStyle?: TextStyle;
+  wrapperStyle?: StyleProp<ViewStyle>;
+  labelStyle?: StyleProp<TextStyle>;
 };
 
 export function DialogInput({
@@ -32,6 +37,7 @@ export function DialogInput({
       <TextInput
         cursorColor={themedColor ?? "#000"}
         placeholderTextColor="#777"
+        accessibilityLabel={label}
         {...props}
         style={[styles.input, input?.textInput, style]}
       />

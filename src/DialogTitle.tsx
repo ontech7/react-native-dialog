@@ -1,7 +1,7 @@
 import React from "react";
 
 import { StyleSheet, Text, View, type TextProps } from "react-native";
-import { useDialogStyles } from "./DialogProvider";
+import { useDialogStyles } from "./theme";
 
 export type DialogTitleProps = TextProps & {
   adornmentStart?: React.ReactNode;
@@ -21,7 +21,11 @@ export function DialogTitle({
     <View style={styles.container}>
       {adornmentStart}
 
-      <Text {...props} style={[styles.text, title]}>
+      <Text
+        accessibilityRole="header"
+        {...props}
+        style={[styles.text, title, style]}
+      >
         {children}
       </Text>
 

@@ -1,6 +1,8 @@
 node_modules
 
 package-lock.json
-yarn.lock
+# the library's yarn.lock is versioned (pins the dev/test toolchain); the
+# example's isn't
+example/yarn.lock
 
 .DS_Store

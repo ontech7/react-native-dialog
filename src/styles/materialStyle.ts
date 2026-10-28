@@ -1,9 +1,11 @@
-import type { DialogStyleConfig, DialogStyleTheme } from "../DialogProvider";
+import type { DialogStyleConfig, DialogStyleTheme } from "../theme";
 
 /**
  * Material Design 3 dialog: 28dp rounded "surface container high", 24dp padding,
  * left-aligned "headline small" title, supporting text, and primary-colored
- * text (pill) buttons aligned to the end.
+ * text (pill) buttons aligned to the end. Variants are 40dp pill buttons:
+ * `primary` filled, `secondary` outlined, `destructive` filled with the error
+ * color.
  *
  * Colors follow the M3 baseline scheme for light and dark.
  */
@@ -50,6 +52,8 @@ const light: DialogStyleConfig = {
   },
   action: {
     button: {
+      minHeight: 40,
+      justifyContent: "center",
       borderRadius: 20,
       backgroundColor: "transparent",
       paddingHorizontal: 12,
@@ -62,6 +66,23 @@ const light: DialogStyleConfig = {
       fontSize: 14,
       fontWeight: "500",
       textAlign: "center",
+    },
+    variants: {
+      primary: {
+        button: { backgroundColor: "#6750a4", paddingHorizontal: 24 },
+        text: { color: "#ffffff" },
+      },
+      secondary: {
+        button: {
+          borderWidth: 1,
+          borderColor: "#79747e",
+          paddingHorizontal: 24,
+        },
+      },
+      destructive: {
+        button: { backgroundColor: "#b3261e", paddingHorizontal: 24 },
+        text: { color: "#ffffff" },
+      },
     },
   },
 };
@@ -109,6 +130,8 @@ const dark: DialogStyleConfig = {
   },
   action: {
     button: {
+      minHeight: 40,
+      justifyContent: "center",
       borderRadius: 20,
       backgroundColor: "transparent",
       paddingHorizontal: 12,
@@ -121,6 +144,23 @@ const dark: DialogStyleConfig = {
       fontSize: 14,
       fontWeight: "500",
       textAlign: "center",
+    },
+    variants: {
+      primary: {
+        button: { backgroundColor: "#d0bcff", paddingHorizontal: 24 },
+        text: { color: "#381e72" },
+      },
+      secondary: {
+        button: {
+          borderWidth: 1,
+          borderColor: "#938f99",
+          paddingHorizontal: 24,
+        },
+      },
+      destructive: {
+        button: { backgroundColor: "#f2b8b5", paddingHorizontal: 24 },
+        text: { color: "#601410" },
+      },
     },
   },
 };

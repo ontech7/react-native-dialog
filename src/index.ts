@@ -13,8 +13,17 @@ export {
   type DialogProviderProps,
   type DialogStyleConfig,
   type DialogStyleTheme,
+  type DialogActionStyle,
+  type DialogActionVariant,
 } from "./DialogProvider";
 export { DialogTitle, type DialogTitleProps } from "./DialogTitle";
+export {
+  useDialog,
+  type DialogAlertOptions,
+  type DialogConfirmOptions,
+  type DialogController,
+} from "./useDialog";
+export { extendDialogTheme } from "./extendDialogTheme";
 
 export { shadcnStyle } from "./styles/shadcnStyle";
 export { materialStyle } from "./styles/materialStyle";
